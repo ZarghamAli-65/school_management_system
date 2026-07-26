@@ -51,3 +51,66 @@ export async function logout() {
   // Redirect to sign‑in (use router in a client component, or window.location)
   window.location.href = "/sign-in";
 }
+
+// Helper function to get auth token
+const getAuthToken = () => {
+  // Try localStorage first
+  const token = localStorage.getItem("accessToken");
+  if (token) return token;
+  
+  // Fallback to cookie
+  const cookies = document.cookie.split(';');
+  for (let cookie of cookies) {
+    const [name, value] = cookie.trim().split('=');
+    if (name === 'accessToken') {
+      return value;
+    }
+  }
+  return null;
+};
+
+// get all students
+export async function getStudents() {
+  const token = getAuthToken();
+  
+  const res = await fetch(`${API_URL}/students`, {
+    cache: "no-store",
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': token ? `Bearer ${token}` : '',
+    },
+  });
+
+  if (!res.ok) {
+    const text = await res.text();
+    console.log("Error response:", text);
+    
+    if (res.status === 401) {
+      throw new Error("401 - Unauthorized. Please login again.");
+    }
+    
+    throw new Error(`Status: ${res.status} - ${text}`);
+  }
+
+  return res.json();
+}
+
+// delete student by id
+export async function deleteStudent(id: number) {
+  const token = getAuthToken();
+  
+  const res = await fetch(`${API_URL}/students/${id}`, {
+    method: 'DELETE',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': token ? `Bearer ${token}` : '',
+    },
+  });
+
+  if (!res.ok) {
+    const text = await res.text();
+    throw new Error(`Status: ${res.status} - ${text}`);
+  }
+
+  return res.json();
+}
