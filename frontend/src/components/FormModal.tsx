@@ -3,11 +3,7 @@
 import dynamic from "next/dynamic";
 import Image from "next/image";
 import { useState } from "react";
-
-// USE LAZY LOADING
-
-// import TeacherForm from "./forms/TeacherForm";
-// import StudentForm from "./forms/StudentForm";
+import { deleteResource } from "@/lib/api";
 
 const TeacherForm = dynamic(() => import("./forms/TeacherForm"), {
   loading: () => <h1>Loading...</h1>,
@@ -15,20 +11,21 @@ const TeacherForm = dynamic(() => import("./forms/TeacherForm"), {
 const StudentForm = dynamic(() => import("./forms/StudentForm"), {
   loading: () => <h1>Loading...</h1>,
 });
+// Add other forms as needed
 
-const forms: {
-  [key: string]: (type: "create" | "update", data?: any) => JSX.Element;
-} = {
-  teacher: (type, data) => <TeacherForm type={type} data={data} />,
-  student: (type, data) => <StudentForm type={type} data={data} />
+// Define the function signature that accepts onSuccess
+export interface FormProps {
+  type: "create" | "update";
+  data?: any;
+  onSuccess?: () => void;
+}
+
+const forms: Record<string, React.ComponentType<FormProps>> = {
+  teacher: TeacherForm,
+  student: StudentForm,
 };
 
-const FormModal = ({
-  table,
-  type,
-  data,
-  id,
-}: {
+type FormModalProps = {
   table:
     | "teacher"
     | "student"
@@ -45,7 +42,10 @@ const FormModal = ({
   type: "create" | "update" | "delete";
   data?: any;
   id?: number;
-}) => {
+  onSuccess?: () => void; // callback to refresh the parent list
+};
+
+const FormModal = ({ table, type, data, id, onSuccess }: FormModalProps) => {
   const size = type === "create" ? "w-8 h-8" : "w-7 h-7";
   const bgColor =
     type === "create"
@@ -55,22 +55,57 @@ const FormModal = ({
       : "bg-purple-300";
 
   const [open, setOpen] = useState(false);
+  const [loading, setLoading] = useState(false);
+
+  const handleDelete = async () => {
+    if (!id) return;
+    try {
+      setLoading(true);
+      await deleteResource(table, id);
+      setOpen(false);
+      onSuccess?.();
+    } catch (error) {
+      console.error(error);
+      alert(`Failed to delete ${table}. Please try again.`);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const Form = () => {
-    return type === "delete" && id ? (
-      <form action="" className="p-4 flex flex-col gap-4">
-        <span className="text-center font-medium">
-          All data will be lost. Are you sure you want to delete this {table}?
-        </span>
-        <button className="bg-red-700 text-white py-2 px-4 rounded-md border-none w-max self-center">
-          Delete
-        </button>
-      </form>
-    ) : type === "create" || type === "update" ? (
-      forms[table](type, data)
-    ) : (
-      "Form not found!"
-    );
+    if (type === "delete" && id) {
+      return (
+        <div className="p-4 flex flex-col gap-4">
+          <span className="text-center font-medium">
+            All data will be lost. Are you sure you want to delete this {table}?
+          </span>
+          <button
+            onClick={handleDelete}
+            disabled={loading}
+            className="bg-red-700 text-white py-2 px-4 rounded-md border-none w-max self-center disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {loading ? "Deleting..." : "Delete"}
+          </button>
+        </div>
+      );
+    }
+
+    if (type === "create" || type === "update") {
+      const FormComponent = forms[table];
+      if (!FormComponent) {
+        return <p className="text-red-500">Form not implemented for {table}</p>;
+      }
+      // Pass onSuccess to the form
+      return FormComponent ? (
+        <FormComponent
+        type={type}
+        data={data}
+        onSuccess={onSuccess}
+        />
+      ) : ( <p> Form not implemented </p>)
+    }
+
+    return <p className="text-red-500">Form not found!</p>;
   };
 
   return (

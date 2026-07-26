@@ -4,13 +4,12 @@ import FormModal from "@/components/FormModal";
 import Pagination from "@/components/Pagination";
 import Table from "@/components/Table";
 import TableSearch from "@/components/TableSearch";
-import { getStudents } from "@/lib/api"; // Import your API function
+import { getStudents } from "@/lib/api";
 import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 
-// Update the Student type to match your API response
 type Student = {
   id: number;
   studentId: string;
@@ -19,9 +18,8 @@ type Student = {
   photo: string;
   phone?: string;
   grade: number;
-  class: string;
+  class: string; // assuming API returns class name as string
   address: string;
-  // Add any additional fields from your API
 };
 
 const columns = [
@@ -62,52 +60,44 @@ const StudentListPage = () => {
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
 
+  // Get role from localStorage / cookies
   useEffect(() => {
-    // Get role from localStorage or cookies
     const getUserRole = () => {
-      // Try to get from localStorage first
       const userData = localStorage.getItem("user");
       if (userData) {
         try {
           const user = JSON.parse(userData);
           return user.role || "";
-        } catch (e) {
-          console.error("Error parsing user data", e);
+        } catch {
+          // ignore
         }
       }
-      
-      // Fallback to cookie
-      const cookies = document.cookie.split(';');
-      for (let cookie of cookies) {
-        const [name, value] = cookie.trim().split('=');
-        if (name === 'role') {
-          return value;
-        }
+      const cookies = document.cookie.split(";");
+      for (const cookie of cookies) {
+        const [name, value] = cookie.trim().split("=");
+        if (name === "role") return value;
       }
-      
       return "";
     };
-
-    const role = getUserRole();
-    setUserRole(role);
+    setUserRole(getUserRole());
   }, []);
 
-  useEffect(() => {
-    const fetchStudents = async () => {
-      try {
-        setLoading(true);
-        const data = await getStudents();
-        setStudents(data);
-        setError(null);
-      } catch (err) {
-        console.error("Error fetching students:", err);
-        setError("Failed to load students. Please try again later.");
-        
-      } finally {
-        setLoading(false);
-      }
-    };
+  // Fetch students
+  const fetchStudents = async () => {
+    try {
+      setLoading(true);
+      const data = await getStudents();
+      setStudents(data);
+      setError(null);
+    } catch (err) {
+      console.error(err);
+      setError("Failed to load students. Please try again later.");
+    } finally {
+      setLoading(false);
+    }
+  };
 
+  useEffect(() => {
     fetchStudents();
   }, [router]);
 
@@ -118,7 +108,7 @@ const StudentListPage = () => {
     >
       <td className="flex items-center gap-4 p-4">
         <Image
-          src={item.photo || "/default-avatar.png"} // Fallback image
+          src={item.photo || "/default-avatar.png"}
           alt={item.name}
           width={40}
           height={40}
@@ -140,8 +130,13 @@ const StudentListPage = () => {
               <Image src="/view.png" alt="View" width={16} height={16} />
             </button>
           </Link>
-          {userRole === "admin" && (
-            <FormModal table="student" type="delete" id={item.id} />
+          {userRole.toLowerCase() === "admin" && (
+            <FormModal
+              table="student"
+              type="delete"
+              id={item.id}
+              onSuccess={fetchStudents} // refresh after delete
+            />
           )}
         </div>
       </td>
@@ -169,8 +164,8 @@ const StudentListPage = () => {
             <p className="text-xl font-semibold">⚠️ Error</p>
             <p className="text-sm">{error}</p>
           </div>
-          <button 
-            onClick={() => window.location.reload()} 
+          <button
+            onClick={() => fetchStudents()}
             className="px-4 py-2 bg-lamaPurple text-white rounded-md hover:bg-purple-700 transition"
           >
             Retry
@@ -194,20 +189,20 @@ const StudentListPage = () => {
             <button className="w-8 h-8 flex items-center justify-center rounded-full bg-lamaYellow">
               <Image src="/sort.png" alt="Sort" width={14} height={14} />
             </button>
-            {userRole === "admin" && (
-              <FormModal table="student" type="create" />
+            {userRole.toLowerCase() === "admin" && (
+              <FormModal
+                table="student"
+                type="create"
+                onSuccess={fetchStudents} // refresh after creation
+              />
             )}
           </div>
         </div>
       </div>
-      
-      {/* LIST */}
-      <Table 
-        columns={columns} 
-        renderRow={renderRow} 
-        data={students} 
-      />
-      
+
+      {/* TABLE */}
+      <Table columns={columns} renderRow={renderRow} data={students} />
+
       {/* PAGINATION */}
       <Pagination />
     </div>
