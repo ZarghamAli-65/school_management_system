@@ -1,7 +1,7 @@
-import { Controller, Get, Post, Delete, Body, Param, ParseIntPipe } from '@nestjs/common';
+import { Controller, Get, Post, Put, Delete, Body, Param, ParseIntPipe } from '@nestjs/common';
 import { StudentService } from './student.service';
 import { CreateStudentDto } from './dto/create-student.dto';
-
+import { UpdateStudentDto } from './dto/update-student.dto'; // we'll create this
 
 @Controller('students')
 export class StudentController {
@@ -18,9 +18,18 @@ export class StudentController {
   }
 
   @Post()
-  // @Roles('admin') // restrict to admin if needed
+  // @Roles('admin')
   create(@Body() createStudentDto: CreateStudentDto) {
     return this.studentService.create(createStudentDto);
+  }
+
+  @Put(':id')
+  // @Roles('admin')
+  update(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() updateStudentDto: UpdateStudentDto,
+  ) {
+    return this.studentService.update(id, updateStudentDto);
   }
 
   @Delete(':id')

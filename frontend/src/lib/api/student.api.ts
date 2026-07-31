@@ -27,18 +27,18 @@ export async function getStudents() {
 }
 
 
-// create student
+
 export async function createStudent(data: {
   studentId: string;
   name: string;
   email: string;
-  grade: number;
-  phone?: string;
-  address?: string;
   photo?: string;
+  phone?: string;
+  grade: number;
+  address: string;
+  classId?: number;
 }) {
   const token = getAuthToken();
-
   const res = await fetch(`${API_URL}/students`, {
     method: "POST",
     headers: {
@@ -47,42 +47,40 @@ export async function createStudent(data: {
     },
     body: JSON.stringify(data),
   });
-
   if (!res.ok) {
-    const text = await res.text();
-    throw new Error(`Status: ${res.status} - ${text}`);
+    // Try to parse JSON error, else fallback to text
+    let errorText = await res.text();
+    try {
+      const json = JSON.parse(errorText);
+      errorText = json.message || json.error || JSON.stringify(json);
+    } catch (e) {
+      // if not JSON, use raw text
+    }
+    throw new Error(`Server error (${res.status}): ${errorText}`);
   }
-
   return res.json();
 }
 
-
-// update student
+// Update Student
 export async function updateStudent(id: number, data: any) {
   const token = getAuthToken();
-
   const res = await fetch(`${API_URL}/students/${id}`, {
-    method: "PUT",
+    method: 'PUT', // or PATCH
     headers: {
-      "Content-Type": "application/json",
-      Authorization: token ? `Bearer ${token}` : "",
+      'Content-Type': 'application/json',
+      Authorization: token ? `Bearer ${token}` : '',
     },
     body: JSON.stringify(data),
   });
-
-  if (!res.ok) {
-    const text = await res.text();
-    throw new Error(`Status: ${res.status} - ${text}`);
-  }
-
+  if (!res.ok) throw new Error(await res.text());
   return res.json();
 }
+
 
 
 // delete student by id
 export async function deleteStudent(id: number) {
   const token = getAuthToken();
-
   const res = await fetch(`${API_URL}/students/${id}`, {
     method: "DELETE",
     headers: {
@@ -90,11 +88,9 @@ export async function deleteStudent(id: number) {
       Authorization: token ? `Bearer ${token}` : "",
     },
   });
-
   if (!res.ok) {
     const text = await res.text();
-    throw new Error(`Status: ${res.status} - ${text}`);
+    throw new Error(`Status ${res.status}: ${text}`);
   }
-
   return res.json();
 }
