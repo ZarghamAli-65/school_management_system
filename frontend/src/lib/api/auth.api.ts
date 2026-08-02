@@ -1,6 +1,4 @@
-const API_URL =
-  process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
-  // console.log(API_URL);
+import { API_URL } from "./client";
 
 export interface LoginRequest {
   email: string;
@@ -38,7 +36,6 @@ export async function login(
 
   return data;
 }
-
 
 //logout funtion
 export async function logout() {

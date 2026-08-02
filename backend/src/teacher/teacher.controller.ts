@@ -11,6 +11,7 @@ import {
 
 import { TeacherService } from './teacher.service';
 import { CreateTeacherDto } from './dto/create-teacher.dto';
+import { UpdateTeacherDto } from './dto/update-teacher.dto';
 
 @Controller('teachers')
 export class TeacherController {
@@ -34,7 +35,7 @@ export class TeacherController {
   @Put(':id')
   update(
     @Param('id', ParseIntPipe) id: number,
-    @Body() updateTeacherDto: CreateTeacherDto,
+    @Body() updateTeacherDto: UpdateTeacherDto,
   ) {
     return this.teacherService.update(id, updateTeacherDto);
   }

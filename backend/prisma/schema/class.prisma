@@ -1,12 +1,12 @@
 model Class {
-  id            Int              @id @default(autoincrement())
-  name          String           @unique
-  capacity      Int
-  grade         Int
-  supervisor    String
+  id         Int    @id @default(autoincrement())
+  name       String @unique
+  capacity   Int
+  grade      Int
+  supervisor String
 
-  students      Student[]
-  teachers      TeacherClass[]
+  students Student[]
+  teachers TeacherClass[]
 
   lessons       Lesson[]
   exams         Exam[]
@@ -15,6 +15,6 @@ model Class {
   events        Event[]
   announcements Announcement[]
 
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }

@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useNotification } from "@/components/NotificationProvider";
-import { logout as logoutApi } from "@/lib/api";
+import { logout as logoutApi } from "@/lib/api/auth.api";
 
 export default function LogoutButton() {
   const router = useRouter();

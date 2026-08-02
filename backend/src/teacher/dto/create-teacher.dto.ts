@@ -1,24 +1,50 @@
-import { IsEmail, IsOptional, IsString } from 'class-validator';
+import {
+  IsEmail,
+  IsEnum,
+  IsOptional,
+  IsString,
+  IsDateString,
+} from 'class-validator';
+
+enum Gender {
+  MALE = 'MALE',
+  FEMALE = 'FEMALE',
+}
 
 export class CreateTeacherDto {
   @IsString()
   teacherId!: string;
 
   @IsString()
-  name!: string;
+  username!: string;
 
   @IsEmail()
   email!: string;
 
-  @IsOptional()
   @IsString()
-  photo?: string;
+  firstName!: string;
 
-  @IsOptional()
   @IsString()
+  lastName!: string;
+
+  @IsString()
+  @IsOptional()
   phone?: string;
 
-  @IsOptional()
   @IsString()
+  @IsOptional()
   address?: string;
+
+  @IsString()
+  bloodType!: string;
+
+  @IsDateString()
+  birthday!: string;
+
+  @IsEnum(Gender)
+  gender!: Gender;
+
+  @IsString()
+  @IsOptional()
+  photo?: string;
 }

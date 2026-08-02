@@ -1,10 +1,10 @@
 model CalendarEvent {
-  id         Int @id @default(autoincrement())
-  title      String
-  allDay     Boolean @default(false)
-  start      DateTime
-  end        DateTime
+  id     Int      @id @default(autoincrement())
+  title  String
+  allDay Boolean  @default(false)
+  start  DateTime
+  end    DateTime
 
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }

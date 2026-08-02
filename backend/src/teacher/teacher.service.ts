@@ -1,6 +1,11 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  BadRequestException,
+} from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateTeacherDto } from './dto/create-teacher.dto';
+import { UpdateTeacherDto } from './dto/update-teacher.dto';
 
 @Injectable()
 export class TeacherService {
@@ -27,12 +32,15 @@ export class TeacherService {
   // Create teacher
   async create(dto: CreateTeacherDto) {
     return this.prisma.teacher.create({
-      data: dto,
+      data: {
+        ...dto,
+        birthday: new Date(dto.birthday),
+      },
     });
   }
 
   // Update teacher
-  async update(id: number, dto: CreateTeacherDto) {
+  async update(id: number, dto: UpdateTeacherDto) {
     const teacher = await this.prisma.teacher.findUnique({
       where: { id },
     });
@@ -43,7 +51,12 @@ export class TeacherService {
 
     return this.prisma.teacher.update({
       where: { id },
-      data: dto,
+      data: {
+        ...dto,
+        ...(dto.birthday && {
+          birthday: new Date(dto.birthday),
+        }),
+      },
     });
   }
 
@@ -57,12 +70,18 @@ export class TeacherService {
       throw new NotFoundException('Teacher not found');
     }
 
-    await this.prisma.teacher.delete({
-      where: { id },
-    });
+    try {
+      await this.prisma.teacher.delete({
+        where: { id },
+      });
 
-    return {
-      message: 'Teacher deleted successfully',
-    };
+      return {
+        message: 'Teacher deleted successfully',
+      };
+    } catch (error) {
+      throw new BadRequestException(
+        'Cannot delete teacher because it is assigned to one or more classes.',
+      );
+    }
   }
 }
