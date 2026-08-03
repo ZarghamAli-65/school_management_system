@@ -1,13 +1,18 @@
 export * from "./auth.api";
 export * from "./student.api";
 export * from "./class.api";
+export * from "./teacher.api";
 
 import { deleteStudent } from "./student.api";
+import { deleteTeacher } from "./teacher.api";
 
 export async function deleteResource(table: string, id: number) {
   switch (table) {
     case "student":
       return deleteStudent(id);
+
+    case "teacher":
+      return deleteTeacher(id);
 
     default:
       throw new Error(`Delete not implemented for ${table}`);

@@ -1,12 +1,12 @@
 model Announcement {
-  id         Int @id @default(autoincrement())
-  title      String
+  id    Int    @id @default(autoincrement())
+  title String
 
-  classId    Int
-  class      Class @relation(fields: [classId], references: [id])
+  classId Int
+  class   Class @relation(fields: [classId], references: [id])
 
-  date       DateTime
+  date DateTime
 
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }

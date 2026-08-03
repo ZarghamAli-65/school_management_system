@@ -1,11 +1,26 @@
+enum Gender {
+  MALE
+  FEMALE
+}
+
 model Teacher {
-  id          Int              @id @default(autoincrement())
-  teacherId   String           @unique
-  name        String
-  email       String           @unique
-  photo       String?
-  phone       String?
-  address     String?
+  id Int @id @default(autoincrement())
+
+  teacherId String  @unique
+  username  String? @unique
+  email     String  @unique
+
+  firstName String?
+  lastName  String?
+
+  phone   String?
+  address String?
+
+  bloodType String?
+  birthday  DateTime?
+  gender    Gender?
+
+  photo String?
 
   subjects    TeacherSubject[]
   classes     TeacherClass[]
@@ -14,6 +29,6 @@ model Teacher {
   assignments Assignment[]
   results     Result[]
 
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }

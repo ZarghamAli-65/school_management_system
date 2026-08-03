@@ -1,22 +1,22 @@
 model Result {
-  id         Int @id @default(autoincrement())
+  id Int @id @default(autoincrement())
 
-  subjectId  Int
-  subject    Subject @relation(fields: [subjectId], references: [id])
+  subjectId Int
+  subject   Subject @relation(fields: [subjectId], references: [id])
 
-  classId    Int
-  class      Class @relation(fields: [classId], references: [id])
+  classId Int
+  class   Class @relation(fields: [classId], references: [id])
 
-  teacherId  Int
-  teacher    Teacher @relation(fields: [teacherId], references: [id])
+  teacherId Int
+  teacher   Teacher @relation(fields: [teacherId], references: [id])
 
-  studentId  Int
-  student    Student @relation(fields: [studentId], references: [id])
+  studentId Int
+  student   Student @relation(fields: [studentId], references: [id])
 
-  date       DateTime
-  type       ResultType
-  score      Int
+  date  DateTime
+  type  ResultType
+  score Int
 
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }

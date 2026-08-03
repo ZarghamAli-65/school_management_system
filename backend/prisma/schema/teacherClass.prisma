@@ -2,8 +2,8 @@ model TeacherClass {
   teacherId Int
   classId   Int
 
-  teacher   Teacher @relation(fields: [teacherId], references: [id])
-  class     Class @relation(fields: [classId], references: [id])
+  teacher Teacher @relation(fields: [teacherId], references: [id])
+  class   Class   @relation(fields: [classId], references: [id])
 
   @@id([teacherId, classId])
 }

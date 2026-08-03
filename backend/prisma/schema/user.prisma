@@ -1,16 +1,16 @@
-  enum Role {
-    ADMIN
-    TEACHER
-    STUDENT
-    PARENT
-  }
+enum Role {
+  ADMIN
+  TEACHER
+  STUDENT
+  PARENT
+}
 
-  model User {
-    id        String   @id @default(cuid())
-    name      String
-    email     String   @unique
-    password  String
-    role      Role
-    createdAt DateTime @default(now())
-    updatedAt DateTime @updatedAt
-  }
+model User {
+  id        String   @id @default(cuid())
+  name      String
+  email     String   @unique
+  password  String
+  role      Role
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
