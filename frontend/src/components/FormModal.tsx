@@ -15,6 +15,10 @@ const StudentForm = dynamic(() => import("./forms/StudentForm"), {
   loading: () => <h1>Loading...</h1>,
 });
 
+const ParentForm = dynamic(() => import("./forms/ParentForm"), {
+  loading: () => <h1>Loading...</h1>,
+});
+
 export interface FormProps {
   type: "create" | "update";
   data?: any;
@@ -24,6 +28,7 @@ export interface FormProps {
 const forms: Record<string, React.ComponentType<FormProps>> = {
   teacher: TeacherForm,
   student: StudentForm,
+  parent: ParentForm,
 };
 
 type FormModalProps = {
