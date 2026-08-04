@@ -1,36 +1,74 @@
-// dto/create-student.dto.ts
-import { IsString, IsEmail, IsOptional, IsNumber, Min, Max } from 'class-validator';
+import {
+  IsString,
+  IsEmail,
+  IsOptional,
+  IsInt,
+  Min,
+  Max,
+  IsEnum,
+  IsDateString,
+} from 'class-validator';
+
+enum Gender {
+  MALE = 'MALE',
+  FEMALE = 'FEMALE',
+  OTHER = 'OTHER',
+}
 
 export class CreateStudentDto {
   @IsString()
   studentId!: string;
 
+  @IsOptional()
   @IsString()
-  name!: string;
+  username?: string;
 
   @IsEmail()
-  email!: string;          // required (unique)
+  email!: string;
 
   @IsString()
-  @IsOptional()
-  photo?: string;        // optional
+  password!: string;
 
   @IsString()
-  @IsOptional()
-  phone?: string;        // optional
+  firstName!: string;
 
-  @IsNumber()
+  @IsString()
+  lastName!: string;
+
+  @IsOptional()
+  @IsString()
+  phone?: string;
+
+  @IsOptional()
+  @IsString()
+  address?: string;
+
+  @IsOptional()
+  @IsString()
+  bloodType?: string;
+
+  @IsOptional()
+  @IsEnum(Gender)
+  gender?: Gender;
+
+  @IsOptional()
+  @IsDateString()
+  birthday?: string;
+
+  @IsOptional()
+  @IsString()
+  photo?: string;
+
+  @IsInt()
   @Min(1)
   @Max(12)
-  grade!: number;         // required – no ? here
+  grade!: number;
 
-  @IsString()
-  address!: string;       // required
-
-  // If you want to assign an existing class by its ID:
-  @IsNumber()
   @IsOptional()
-  classId?: number;     // optional – if not provided, class remains null
+  @IsInt()
+  classId?: number;
 
-
+  @IsOptional()
+  @IsInt()
+  parentId?: number;
 }

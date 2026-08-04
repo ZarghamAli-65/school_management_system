@@ -1,21 +1,32 @@
 model Student {
-  id        Int     @id @default(autoincrement())
-  studentId String  @unique
-  name      String
-  email     String  @unique
-  photo     String?
-  phone     String?
-  grade     Int
-  address   String?
+  id         Int      @id @default(autoincrement())
 
-  classId Int?
-  class   Class? @relation(fields: [classId], references: [id])
+  studentId  String   @unique
+  username   String?  @unique
+  email      String   @unique
+  password   String
 
-  parentId Int?
-  parent   Parent? @relation(fields: [parentId], references: [id])
+  firstName  String
+  lastName   String
 
-  results Result[]
+  phone      String?
+  address    String?
 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  bloodType  String?
+  gender     Gender?
+  birthday   DateTime?
+  photo      String?
+
+  grade      Int
+
+  classId    Int?
+  class       Class?  @relation(fields: [classId], references: [id])
+
+  parentId   Int?
+  parent      Parent? @relation(fields: [parentId], references: [id])
+
+  results    Result[]
+
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
 }
