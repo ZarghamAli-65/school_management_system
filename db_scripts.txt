@@ -1,0 +1,81 @@
+For Students:
+INSERT INTO "Student" ("studentId", "name", "email", "photo", "phone", "grade", "address", "createdAt", "updatedAt") VALUES
+  ('S1', 'Ahmed', 'abc@.com', 'https://images.pexels.com/photos/2888150/pexels-photo-2888150.jpeg?auto=compress&cs=tinysrgb&w=1200', '1234567890', 5, 'Karachi', NOW(), NOW()),
+  ('S2', 'Aslam', 'Aslam@.com', 'https://images.pexels.com/photos/936126/pexels-photo-936126.jpeg?auto=compress&cs=tinysrgb&w=1200', '1234567890', 5, 'Karachi', NOW(), NOW()),
+  ('S3', 'Suhail', 'Suhail@.com', 'https://images.pexels.com/photos/428328/pexels-photo-428328.jpeg?auto=compress&cs=tinysrgb&w=1200', '1234567890', 5, 'Karachi', NOW(), NOW()),
+  ('S4', 'Bilal', 'Bilal@gmail.com', 'https://images.pexels.com/photos/1187765/pexels-photo-1187765.jpeg?auto=compress&cs=tinysrgb&w=1200', '1234567890', 5, 'Karachi', NOW(), NOW()),
+  ('S5', 'Tariq', 'Tariq@gmail.com', 'https://images.pexels.com/photos/1102341/pexels-photo-1102341.jpeg?auto=compress&cs=tinysrgb&w=1200', '1234567890', 5, 'Karachi', NOW(), NOW()),
+  ('S6', 'Anna Santiago', 'anna.student@gmail.com', 'https://images.pexels.com/photos/712513/pexels-photo-712513.jpeg?auto=compress&cs=tinysrgb&w=1200', '1234567890', 5, 'Karachi', NOW(), NOW()),
+  ('S7', 'Allen Black', 'allen.student@black.com', 'https://images.pexels.com/photos/1438081/pexels-photo-1438081.jpeg?auto=compress&cs=tinysrgb&w=1200', '1234567890', 5, 'Karachi', NOW(), NOW()),
+  ('S8', 'Ophelia Castro', 'ophelia.student@castro.com', 'https://images.pexels.com/photos/1036623/pexels-photo-1036623.jpeg?auto=compress&cs=tinysrgb&w=1200', '1234567890', 5, 'Karachi', NOW(), NOW()),
+  ('S9', 'Derek Briggs', 'derek.student@briggs.com', 'https://images.pexels.com/photos/842980/pexels-photo-842980.jpeg?auto=compress&cs=tinysrgb&w=1200', '1234567890', 5, 'Karachi', NOW(), NOW()),
+  ('S10', 'John Glover', 'john.student@glover.com', 'https://images.pexels.com/photos/1043474/pexels-photo-1043474.jpeg?auto=compress&cs=tinysrgb&w=1200', '1234567890', 5, 'Karachi', NOW(), NOW())
+ON CONFLICT ("studentId") DO NOTHING;
+
+
+
+For Parents:
+INSERT INTO "Parent"
+("username","email","password","firstName","lastName","phone","address","bloodType","gender","image","createdAt","updatedAt")
+VALUES
+('parent1','parent1@example.com','password123','Ali','Khan','03001234501','Karachi','A+','MALE','https://i.pravatar.cc/150?img=1',NOW(),NOW()),
+('parent2','parent2@example.com','password123','Ahmed','Sheikh','03001234502','Lahore','B+','MALE','https://i.pravatar.cc/150?img=2',NOW(),NOW()),
+('parent3','parent3@example.com','password123','Fatima','Ahmed','03001234503','Islamabad','O+','FEMALE','https://i.pravatar.cc/150?img=3',NOW(),NOW()),
+('parent4','parent4@example.com','password123','Ayesha','Malik','03001234504','Rawalpindi','AB+','FEMALE','https://i.pravatar.cc/150?img=4',NOW(),NOW()),
+('parent5','parent5@example.com','password123','Bilal','Raza','03001234505','Faisalabad','A-','MALE','https://i.pravatar.cc/150?img=5',NOW(),NOW()),
+('parent6','parent6@example.com','password123','Usman','Khan','03001234506','Multan','B-','MALE','https://i.pravatar.cc/150?img=6',NOW(),NOW()),
+('parent7','parent7@example.com','password123','Sara','Malik','03001234507','Hyderabad','O-','FEMALE','https://i.pravatar.cc/150?img=7',NOW(),NOW()),
+('parent8','parent8@example.com','password123','Hamza','Butt','03001234508','Peshawar','AB-','MALE','https://i.pravatar.cc/150?img=8',NOW(),NOW()),
+('parent9','parent9@example.com','password123','Maryam','Qureshi','03001234509','Quetta','A+','FEMALE','https://i.pravatar.cc/150?img=9',NOW(),NOW()),
+('parent10','parent10@example.com','password123','Hassan','Abbasi','03001234510','Sialkot','B+','MALE','https://i.pravatar.cc/150?img=10',NOW(),NOW()),
+('parent11','parent11@example.com','password123','Noor','Farooq','03001234511','Karachi','O+','FEMALE','https://i.pravatar.cc/150?img=11',NOW(),NOW()),
+('parent12','parent12@example.com','password123','Zain','Raja','03001234512','Lahore','AB+','MALE','https://i.pravatar.cc/150?img=12',NOW(),NOW()),
+('parent13','parent13@example.com','password123','Amna','Ansari','03001234513','Islamabad','A-','FEMALE','https://i.pravatar.cc/150?img=13',NOW(),NOW()),
+('parent14','parent14@example.com','password123','Umer','Khan','03001234514','Rawalpindi','B-','MALE','https://i.pravatar.cc/150?img=14',NOW(),NOW()),
+('parent15','parent15@example.com','password123','Iqra','Malik','03001234515','Faisalabad','O-','FEMALE','https://i.pravatar.cc/150?img=15',NOW(),NOW()),
+('parent16','parent16@example.com','password123','Adeel','Butt','03001234516','Multan','AB-','MALE','https://i.pravatar.cc/150?img=16',NOW(),NOW()),
+('parent17','parent17@example.com','password123','Hina','Qureshi','03001234517','Hyderabad','A+','FEMALE','https://i.pravatar.cc/150?img=17',NOW(),NOW()),
+('parent18','parent18@example.com','password123','Saad','Abbasi','03001234518','Peshawar','B+','MALE','https://i.pravatar.cc/150?img=18',NOW(),NOW()),
+('parent19','parent19@example.com','password123','Rabia','Farooq','03001234519','Quetta','O+','FEMALE','https://i.pravatar.cc/150?img=19',NOW(),NOW()),
+('parent20','parent20@example.com','password123','Danish','Raja','03001234520','Sialkot','AB+','MALE','https://i.pravatar.cc/150?img=20',NOW(),NOW()),
+('parent21','parent21@example.com','password123','Aiman','Ansari','03001234521','Karachi','A+','FEMALE','https://i.pravatar.cc/150?img=21',NOW(),NOW()),
+('parent22','parent22@example.com','password123','Jawad','Khan','03001234522','Lahore','B+','MALE','https://i.pravatar.cc/150?img=22',NOW(),NOW()),
+('parent23','parent23@example.com','password123','Laiba','Sheikh','03001234523','Islamabad','O+','FEMALE','https://i.pravatar.cc/150?img=23',NOW(),NOW()),
+('parent24','parent24@example.com','password123','Talha','Malik','03001234524','Rawalpindi','AB+','MALE','https://i.pravatar.cc/150?img=24',NOW(),NOW()),
+('parent25','parent25@example.com','password123','Maham','Butt','03001234525','Faisalabad','A-','FEMALE','https://i.pravatar.cc/150?img=25',NOW(),NOW()),
+('parent26','parent26@example.com','password123','Farhan','Qureshi','03001234526','Multan','B-','MALE','https://i.pravatar.cc/150?img=26',NOW(),NOW()),
+('parent27','parent27@example.com','password123','Sidra','Abbasi','03001234527','Hyderabad','O-','FEMALE','https://i.pravatar.cc/150?img=27',NOW(),NOW()),
+('parent28','parent28@example.com','password123','Shahzaib','Farooq','03001234528','Peshawar','AB-','MALE','https://i.pravatar.cc/150?img=28',NOW(),NOW()),
+('parent29','parent29@example.com','password123','Mehwish','Raja','03001234529','Quetta','A+','FEMALE','https://i.pravatar.cc/150?img=29',NOW(),NOW()),
+('parent30','parent30@example.com','password123','Noman','Ansari','03001234530','Sialkot','B+','MALE','https://i.pravatar.cc/150?img=30',NOW(),NOW()),
+('parent31','parent31@example.com','password123','Sana','Khan','03001234531','Karachi','O+','FEMALE','https://i.pravatar.cc/150?img=31',NOW(),NOW()),
+('parent32','parent32@example.com','password123','Arslan','Sheikh','03001234532','Lahore','AB+','MALE','https://i.pravatar.cc/150?img=32',NOW(),NOW()),
+('parent33','parent33@example.com','password123','Komal','Malik','03001234533','Islamabad','A-','FEMALE','https://i.pravatar.cc/150?img=33',NOW(),NOW()),
+('parent34','parent34@example.com','password123','Adnan','Butt','03001234534','Rawalpindi','B-','MALE','https://i.pravatar.cc/150?img=34',NOW(),NOW()),
+('parent35','parent35@example.com','password123','Anum','Qureshi','03001234535','Faisalabad','O-','FEMALE','https://i.pravatar.cc/150?img=35',NOW(),NOW()),
+('parent36','parent36@example.com','password123','Fahad','Abbasi','03001234536','Multan','AB-','MALE','https://i.pravatar.cc/150?img=36',NOW(),NOW()),
+('parent37','parent37@example.com','password123','Minal','Farooq','03001234537','Hyderabad','A+','FEMALE','https://i.pravatar.cc/150?img=37',NOW(),NOW()),
+('parent38','parent38@example.com','password123','Asad','Raja','03001234538','Peshawar','B+','MALE','https://i.pravatar.cc/150?img=38',NOW(),NOW()),
+('parent39','parent39@example.com','password123','Eman','Ansari','03001234539','Quetta','O+','FEMALE','https://i.pravatar.cc/150?img=39',NOW(),NOW()),
+('parent40','parent40@example.com','password123','Taimoor','Khan','03001234540','Sialkot','AB+','MALE','https://i.pravatar.cc/150?img=40',NOW(),NOW()),
+('parent41','parent41@example.com','password123','Sobia','Sheikh','03001234541','Karachi','A-','FEMALE','https://i.pravatar.cc/150?img=41',NOW(),NOW()),
+('parent42','parent42@example.com','password123','Shayan','Malik','03001234542','Lahore','B-','MALE','https://i.pravatar.cc/150?img=42',NOW(),NOW()),
+('parent43','parent43@example.com','password123','Areeba','Butt','03001234543','Islamabad','O-','FEMALE','https://i.pravatar.cc/150?img=43',NOW(),NOW()),
+('parent44','parent44@example.com','password123','Haris','Qureshi','03001234544','Rawalpindi','AB-','MALE','https://i.pravatar.cc/150?img=44',NOW(),NOW()),
+('parent45','parent45@example.com','password123','Zoya','Abbasi','03001234545','Faisalabad','A+','FEMALE','https://i.pravatar.cc/150?img=45',NOW(),NOW()),
+('parent46','parent46@example.com','password123','Rehan','Farooq','03001234546','Multan','B+','MALE','https://i.pravatar.cc/150?img=46',NOW(),NOW()),
+('parent47','parent47@example.com','password123','Maham47','Raja','03001234547','Hyderabad','O+','FEMALE','https://i.pravatar.cc/150?img=47',NOW(),NOW()),
+('parent48','parent48@example.com','password123','Huzaifa','Ansari','03001234548','Peshawar','AB+','MALE','https://i.pravatar.cc/150?img=48',NOW(),NOW()),
+('parent49','parent49@example.com','password123','Aqsa','Khan','03001234549','Quetta','A-','FEMALE','https://i.pravatar.cc/150?img=49',NOW(),NOW()),
+('parent50','parent50@example.com','password123','Yasir','Sheikh','03001234550','Bahawalpur','O+','MALE','https://i.pravatar.cc/150?img=50',NOW(),NOW());
+
+
+
+
+
+
+
+
+
+
+

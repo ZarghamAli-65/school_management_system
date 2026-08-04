@@ -1,12 +1,27 @@
 model Parent {
-  id      Int     @id @default(autoincrement())
-  name    String
-  email   String  @unique
-  phone   String?
-  address String?
+  id         Int       @id @default(autoincrement())
+  username   String    @unique
+  email      String    @unique
+  password   String
 
-  students Student[]
+  firstName  String
+  lastName   String
 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  phone      String?
+  address    String?
+
+  bloodType  String?
+  gender     Gender?
+  image      String?
+
+  students   Student[]
+
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+}
+
+enum Gender {
+  MALE
+  FEMALE
+  OTHER
 }
