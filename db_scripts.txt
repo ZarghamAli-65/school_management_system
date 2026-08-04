@@ -1,20 +1,53 @@
-For Students:
-INSERT INTO "Student" ("studentId", "name", "email", "photo", "phone", "grade", "address", "createdAt", "updatedAt") VALUES
-  ('S1', 'Ahmed', 'abc@.com', 'https://images.pexels.com/photos/2888150/pexels-photo-2888150.jpeg?auto=compress&cs=tinysrgb&w=1200', '1234567890', 5, 'Karachi', NOW(), NOW()),
-  ('S2', 'Aslam', 'Aslam@.com', 'https://images.pexels.com/photos/936126/pexels-photo-936126.jpeg?auto=compress&cs=tinysrgb&w=1200', '1234567890', 5, 'Karachi', NOW(), NOW()),
-  ('S3', 'Suhail', 'Suhail@.com', 'https://images.pexels.com/photos/428328/pexels-photo-428328.jpeg?auto=compress&cs=tinysrgb&w=1200', '1234567890', 5, 'Karachi', NOW(), NOW()),
-  ('S4', 'Bilal', 'Bilal@gmail.com', 'https://images.pexels.com/photos/1187765/pexels-photo-1187765.jpeg?auto=compress&cs=tinysrgb&w=1200', '1234567890', 5, 'Karachi', NOW(), NOW()),
-  ('S5', 'Tariq', 'Tariq@gmail.com', 'https://images.pexels.com/photos/1102341/pexels-photo-1102341.jpeg?auto=compress&cs=tinysrgb&w=1200', '1234567890', 5, 'Karachi', NOW(), NOW()),
-  ('S6', 'Anna Santiago', 'anna.student@gmail.com', 'https://images.pexels.com/photos/712513/pexels-photo-712513.jpeg?auto=compress&cs=tinysrgb&w=1200', '1234567890', 5, 'Karachi', NOW(), NOW()),
-  ('S7', 'Allen Black', 'allen.student@black.com', 'https://images.pexels.com/photos/1438081/pexels-photo-1438081.jpeg?auto=compress&cs=tinysrgb&w=1200', '1234567890', 5, 'Karachi', NOW(), NOW()),
-  ('S8', 'Ophelia Castro', 'ophelia.student@castro.com', 'https://images.pexels.com/photos/1036623/pexels-photo-1036623.jpeg?auto=compress&cs=tinysrgb&w=1200', '1234567890', 5, 'Karachi', NOW(), NOW()),
-  ('S9', 'Derek Briggs', 'derek.student@briggs.com', 'https://images.pexels.com/photos/842980/pexels-photo-842980.jpeg?auto=compress&cs=tinysrgb&w=1200', '1234567890', 5, 'Karachi', NOW(), NOW()),
-  ('S10', 'John Glover', 'john.student@glover.com', 'https://images.pexels.com/photos/1043474/pexels-photo-1043474.jpeg?auto=compress&cs=tinysrgb&w=1200', '1234567890', 5, 'Karachi', NOW(), NOW())
-ON CONFLICT ("studentId") DO NOTHING;
+INSERT INTO "Student"
+(
+  "studentId",
+  "username",
+  "email",
+  "password",
+  "firstName",
+  "lastName",
+  "phone",
+  "address",
+  "bloodType",
+  "gender",
+  "birthday",
+  "grade",
+  "createdAt",
+  "updatedAt"
+)
+VALUES
+('S001','student1','student1@school.com','password123','Ali','Khan','03110000001','Karachi','A+','MALE','2010-01-15',8,NOW(),NOW()),
+('S002','student2','student2@school.com','password123','Ahmed','Raza','03110000002','Lahore','B+','MALE','2011-02-16',7,NOW(),NOW()),
+('S003','student3','student3@school.com','password123','Sara','Ahmed','03110000003','Islamabad','O+','FEMALE','2010-03-17',8,NOW(),NOW()),
+('S004','student4','student4@school.com','password123','Fatima','Ali','03110000004','Faisalabad','AB+','FEMALE','2011-04-18',7,NOW(),NOW()),
+('S005','student5','student5@school.com','password123','Hassan','Malik','03110000005','Peshawar','A-','MALE','2012-05-19',6,NOW(),NOW()),
+('S006','student6','student6@school.com','password123','Ayesha','Khan','03110000006','Quetta','B-','FEMALE','2010-06-20',8,NOW(),NOW()),
+('S007','student7','student7@school.com','password123','Usman','Ahmed','03110000007','Karachi','O-','MALE','2011-07-21',7,NOW(),NOW()),
+('S008','student8','student8@school.com','password123','Zainab','Hussain','03110000008','Lahore','A+','FEMALE','2012-08-22',6,NOW(),NOW()),
+('S009','student9','student9@school.com','password123','Bilal','Khan','03110000009','Islamabad','B+','MALE','2010-09-23',8,NOW(),NOW()),
+('S010','student10','student10@school.com','password123','Maryam','Raza','03110000010','Multan','AB-','FEMALE','2011-10-24',7,NOW(),NOW()),
+
+('S011','student11','student11@school.com','password123','Hamza','Ali','03110000011','Hyderabad','A+','MALE','2012-11-25',6,NOW(),NOW()),
+('S012','student12','student12@school.com','password123','Noor','Fatima','03110000012','Sialkot','O+','FEMALE','2010-12-26',8,NOW(),NOW()),
+('S013','student13','student13@school.com','password123','Daniyal','Ahmed','03110000013','Karachi','B+','MALE','2011-01-27',7,NOW(),NOW()),
+('S014','student14','student14@school.com','password123','Hira','Khan','03110000014','Lahore','A-','FEMALE','2012-02-28',6,NOW(),NOW()),
+('S015','student15','student15@school.com','password123','Saad','Malik','03110000015','Rawalpindi','O-','MALE','2010-03-29',8,NOW(),NOW()),
+('S016','student16','student16@school.com','password123','Iqra','Ahmed','03110000016','Peshawar','AB+','FEMALE','2011-04-30',7,NOW(),NOW()),
+('S017','student17','student17@school.com','password123','Talha','Raza','03110000017','Quetta','B-','MALE','2012-05-01',6,NOW(),NOW()),
+('S018','student18','student18@school.com','password123','Laiba','Hassan','03110000018','Karachi','A+','FEMALE','2010-06-02',8,NOW(),NOW()),
+('S019','student19','student19@school.com','password123','Owais','Khan','03110000019','Lahore','O+','MALE','2011-07-03',7,NOW(),NOW()),
+('S020','student20','student20@school.com','password123','Maham','Ali','03110000020','Islamabad','AB-','FEMALE','2012-08-04',6,NOW(),NOW()),
+
+('S021','student21','student21@school.com','password123','Rehan','Ahmed','03110000021','Multan','A+','MALE','2010-09-05',8,NOW(),NOW()),
+('S022','student22','student22@school.com','password123','Anaya','Khan','03110000022','Karachi','B+','FEMALE','2011-10-06',7,NOW(),NOW()),
+('S023','student23','student23@school.com','password123','Yasir','Malik','03110000023','Lahore','O+','MALE','2012-11-07',6,NOW(),NOW()),
+('S024','student24','student24@school.com','password123','Alina','Raza','03110000024','Islamabad','A-','FEMALE','2010-12-08',8,NOW(),NOW()),
+('S025','student25','student25@school.com','password123','Arham','Hussain','03110000025','Faisalabad','AB+','MALE','2011-01-09',7,NOW(),NOW());
 
 
 
-For Parents:
+
+
 INSERT INTO "Parent"
 ("username","email","password","firstName","lastName","phone","address","bloodType","gender","image","createdAt","updatedAt")
 VALUES
@@ -69,13 +102,46 @@ VALUES
 ('parent49','parent49@example.com','password123','Aqsa','Khan','03001234549','Quetta','A-','FEMALE','https://i.pravatar.cc/150?img=49',NOW(),NOW()),
 ('parent50','parent50@example.com','password123','Yasir','Sheikh','03001234550','Bahawalpur','O+','MALE','https://i.pravatar.cc/150?img=50',NOW(),NOW());
 
+INSERT INTO "Teacher"
+(
+  "teacherId",
+  "username",
+  "email",
+  "firstName",
+  "lastName",
+  "phone",
+  "address",
+  "bloodType",
+  "birthday",
+  "gender",
+  "createdAt",
+  "updatedAt"
+)
+VALUES
+('T001','teacher1','teacher1@school.com','John','Smith','03000000001','Karachi','A+','1985-01-10','MALE',NOW(),NOW()),
+('T002','teacher2','teacher2@school.com','Sarah','Johnson','03000000002','Lahore','B+','1986-02-11','FEMALE',NOW(),NOW()),
+('T003','teacher3','teacher3@school.com','Michael','Brown','03000000003','Islamabad','O+','1984-03-12','MALE',NOW(),NOW()),
+('T004','teacher4','teacher4@school.com','Emily','Davis','03000000004','Faisalabad','AB+','1987-04-13','FEMALE',NOW(),NOW()),
+('T005','teacher5','teacher5@school.com','David','Wilson','03000000005','Peshawar','A-','1983-05-14','MALE',NOW(),NOW()),
+('T006','teacher6','teacher6@school.com','Sophia','Taylor','03000000006','Quetta','B-','1988-06-15','FEMALE',NOW(),NOW()),
+('T007','teacher7','teacher7@school.com','Daniel','Anderson','03000000007','Karachi','O-','1982-07-16','MALE',NOW(),NOW()),
+('T008','teacher8','teacher8@school.com','Olivia','Thomas','03000000008','Lahore','A+','1989-08-17','FEMALE',NOW(),NOW()),
+('T009','teacher9','teacher9@school.com','James','Jackson','03000000009','Islamabad','B+','1981-09-18','MALE',NOW(),NOW()),
+('T010','teacher10','teacher10@school.com','Emma','White','03000000010','Multan','AB-','1990-10-19','FEMALE',NOW(),NOW()),
 
+('T011','teacher11','teacher11@school.com','Liam','Harris','03000000011','Hyderabad','A+','1984-11-20','MALE',NOW(),NOW()),
+('T012','teacher12','teacher12@school.com','Ava','Martin','03000000012','Sialkot','O+','1986-12-21','FEMALE',NOW(),NOW()),
+('T013','teacher13','teacher13@school.com','Noah','Thompson','03000000013','Karachi','B+','1987-01-22','MALE',NOW(),NOW()),
+('T014','teacher14','teacher14@school.com','Isabella','Garcia','03000000014','Lahore','A-','1985-02-23','FEMALE',NOW(),NOW()),
+('T015','teacher15','teacher15@school.com','William','Martinez','03000000015','Rawalpindi','O-','1983-03-24','MALE',NOW(),NOW()),
+('T016','teacher16','teacher16@school.com','Mia','Robinson','03000000016','Peshawar','AB+','1989-04-25','FEMALE',NOW(),NOW()),
+('T017','teacher17','teacher17@school.com','Benjamin','Clark','03000000017','Quetta','B-','1982-05-26','MALE',NOW(),NOW()),
+('T018','teacher18','teacher18@school.com','Charlotte','Rodriguez','03000000018','Karachi','A+','1990-06-27','FEMALE',NOW(),NOW()),
+('T019','teacher19','teacher19@school.com','Lucas','Lewis','03000000019','Lahore','O+','1988-07-28','MALE',NOW(),NOW()),
+('T020','teacher20','teacher20@school.com','Amelia','Lee','03000000020','Islamabad','AB-','1987-08-29','FEMALE',NOW(),NOW()),
 
-
-
-
-
-
-
-
-
+('T021','teacher21','teacher21@school.com','Henry','Walker','03000000021','Multan','A+','1984-09-10','MALE',NOW(),NOW()),
+('T022','teacher22','teacher22@school.com','Evelyn','Hall','03000000022','Karachi','B+','1985-10-11','FEMALE',NOW(),NOW()),
+('T023','teacher23','teacher23@school.com','Alexander','Allen','03000000023','Lahore','O+','1986-11-12','MALE',NOW(),NOW()),
+('T024','teacher24','teacher24@school.com','Harper','Young','03000000024','Peshawar','A-','1987-12-13','FEMALE',NOW(),NOW()),
+('T025','teacher25','teacher25@school.com','Mason','King','03000000025','Quetta','AB+','1988-01-14','MALE',NOW(),NOW());
