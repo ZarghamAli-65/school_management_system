@@ -1,6 +1,6 @@
 // API Configuration and shared utilities
 export const API_URL =
-  process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+  process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
 
 // Helper function to get auth token
 export const getAuthToken = () => {
