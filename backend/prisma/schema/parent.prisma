@@ -1,11 +1,14 @@
 model Parent {
   id       Int    @id @default(autoincrement())
+
   username String @unique
   email    String @unique
   password String
 
   firstName String
   lastName  String
+
+  cnic String @unique
 
   phone   String?
   address String?

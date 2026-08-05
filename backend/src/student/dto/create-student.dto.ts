@@ -15,6 +15,13 @@ enum Gender {
   OTHER = 'OTHER',
 }
 
+enum GuardianRelation {
+  FATHER = 'FATHER',
+  MOTHER = 'MOTHER',
+  GUARDIAN = 'GUARDIAN',
+  OTHER = 'OTHER',
+}
+
 export class CreateStudentDto {
   @IsString()
   studentId!: string;
@@ -71,4 +78,9 @@ export class CreateStudentDto {
   @IsOptional()
   @IsInt()
   parentId?: number;
+
+  @IsOptional()
+  @IsEnum(GuardianRelation)
+  guardianRelation?: GuardianRelation;
 }
+
