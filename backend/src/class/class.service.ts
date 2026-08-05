@@ -1,4 +1,4 @@
-// src/classes/classes.service.ts
+// src/class/class.service.ts
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateClassDto } from './dto/create-class.dto';
@@ -14,22 +14,33 @@ export class ClassService {
     return this.prisma.class.create({
       data: {
         ...classData,
+        // Direct relations (one-to-many)
         students: studentIds
           ? { connect: studentIds.map(id => ({ id })) }
-          : undefined,
-        teachers: teacherIds
-          ? { connect: teacherIds.map(id => ({ id })) }
           : undefined,
         lessons: lessonIds
           ? { connect: lessonIds.map(id => ({ id })) }
           : undefined,
-        // add other relations similarly
+        // Junction relation (many-to-many via TeacherClass)
+        teachers: teacherIds
+          ? {
+              create: teacherIds.map(teacherId => ({
+                teacher: { connect: { id: teacherId } },
+              })),
+            }
+          : undefined,
       },
       include: {
         students: true,
-        teachers: true,
+        teachers: {
+          include: { teacher: true },
+        },
         lessons: true,
-        // include other relations as needed
+        exams: true,
+        assignments: true,
+        results: true,
+        events: true,
+        announcements: true,
       },
     });
   }
@@ -38,7 +49,9 @@ export class ClassService {
     return this.prisma.class.findMany({
       include: {
         students: true,
-        teachers: true,
+        teachers: {
+          include: { teacher: true },
+        },
         lessons: true,
         exams: true,
         assignments: true,
@@ -54,7 +67,9 @@ export class ClassService {
       where: { id },
       include: {
         students: true,
-        teachers: true,
+        teachers: {
+          include: { teacher: true },
+        },
         lessons: true,
         exams: true,
         assignments: true,
@@ -81,22 +96,32 @@ export class ClassService {
       where: { id },
       data: {
         ...classData,
+        // Direct relations – replace the entire list
         students: studentIds
-          ? { set: studentIds.map(id => ({ id })) } // replaces entire list
-          : undefined,
-        teachers: teacherIds
-          ? { set: teacherIds.map(id => ({ id })) }
+          ? { set: studentIds.map(id => ({ id })) }
           : undefined,
         lessons: lessonIds
           ? { set: lessonIds.map(id => ({ id })) }
           : undefined,
-        // handle other relations similarly
+        // Junction relation – replace using the compound unique key
+        teachers: teacherIds
+          ? {
+              set: teacherIds.map(teacherId => ({
+                teacherId_classId: {
+                  teacherId: teacherId,
+                  classId: id,
+                },
+              })),
+            }
+          : undefined,
       },
       include: {
         students: true,
-        teachers: true,
+        teachers: {
+          include: { teacher: true },
+        },
         lessons: true,
-        // include others if desired
+        // Include other relations if needed
       },
     });
   }
