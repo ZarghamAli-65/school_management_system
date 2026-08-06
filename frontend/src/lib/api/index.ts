@@ -1,8 +1,4 @@
-export * from "./auth.api";
-export * from "./student.api";
-export * from "./class.api";
-export * from "./teacher.api";
-
+import { deleteClass } from "./class.api";
 import { deleteParent } from "./parent.api";
 import { deleteStudent } from "./student.api";
 import { deleteTeacher } from "./teacher.api";
@@ -12,13 +8,14 @@ export async function deleteResource(table: string, id: number) {
     case "student":
       return deleteStudent(id);
 
-
     case "teacher":
       return deleteTeacher(id);
 
     case "parent":
       return deleteParent(id);
 
+    case "class":
+      return deleteClass(id);
 
     default:
       throw new Error(`Delete not implemented for ${table}`);
