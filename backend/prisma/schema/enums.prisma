@@ -3,3 +3,10 @@ enum Gender {
   FEMALE
   OTHER
 }
+
+enum GuardianRelation {
+  FATHER
+  MOTHER
+  GUARDIAN
+  OTHER
+}

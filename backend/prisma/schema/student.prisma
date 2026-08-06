@@ -20,10 +20,12 @@ model Student {
   grade      Int
 
   classId    Int?
-  class       Class?  @relation(fields: [classId], references: [id])
+  class      Class? @relation(fields: [classId], references: [id])
 
   parentId   Int?
-  parent      Parent? @relation(fields: [parentId], references: [id])
+  parent     Parent? @relation(fields: [parentId], references: [id])
+
+  guardianRelation GuardianRelation?
 
   results    Result[]
 

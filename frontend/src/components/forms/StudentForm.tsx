@@ -17,7 +17,7 @@ const schema = z.object({
   studentId: z.string().min(3, "Student ID must be at least 3 characters"),
   email: z.string().email("Invalid email address"),
   password: z.string().min(8, "Password must be at least 8 characters").optional(),
-  username: z.string().optional(), // optional, unique
+  username: z.string().optional(),
 
   // Personal
   firstName: z.string().min(1, "First name is required"),
@@ -26,13 +26,18 @@ const schema = z.object({
   address: z.string().optional(),
   bloodType: z.string().optional(),
   gender: z.enum(["MALE", "FEMALE", "OTHER"]).optional(),
-  birthday: z.string().optional(), // will be transformed to DateTime
-  photo: z.string().optional(),    // base64 image
+  birthday: z.string().optional(),
+  photo: z.string().optional(),
 
   // Academic
-  grade: z.coerce.number().min(1, "Grade 1‑12").max(12),
+  grade: z.coerce.number().min(1, "Grade 1-12").max(12),
   classId: z.coerce.number().optional(),
+
+  // Parent Relation
   parentId: z.coerce.number().optional(),
+  guardianRelation: z
+    .enum(["FATHER", "MOTHER", "GUARDIAN", "OTHER"])
+    .optional(),
 
   // File upload
   img: z.instanceof(File).optional(),
@@ -40,7 +45,6 @@ const schema = z.object({
 
 type Inputs = z.infer<typeof schema>;
 
-// ------------------- Component -------------------
 type StudentFormProps = {
   type: "create" | "update";
   data?: any;
@@ -54,7 +58,6 @@ const StudentForm = ({ type, data, onSuccess }: StudentFormProps) => {
   const { showNotification } = useNotification();
 
   useEffect(() => {
-    // Load classes and parents for dropdowns
     getClasses()
       .then((data) => setClasses(data))
       .catch((err) => console.error("Failed to load classes:", err));
@@ -75,27 +78,36 @@ const StudentForm = ({ type, data, onSuccess }: StudentFormProps) => {
       studentId: data?.studentId || "",
       email: data?.email || "",
       username: data?.username || "",
+
       firstName: data?.firstName || "",
       lastName: data?.lastName || "",
       phone: data?.phone || "",
       address: data?.address || "",
       bloodType: data?.bloodType || "",
       gender: data?.gender || "",
-      birthday: data?.birthday ? data.birthday.split("T")[0] : "", // format for date input
+      birthday: data?.birthday ? data.birthday.split("T")[0] : "",
+      photo: data?.photo || "",
+
       grade: data?.grade || undefined,
       classId: data?.classId || undefined,
+
       parentId: data?.parentId || undefined,
-      photo: data?.photo || "",
+      guardianRelation: data?.guardianRelation || undefined,
     },
   });
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = (
+    e: React.ChangeEvent<HTMLInputElement>
+  ) => {
     const file = e.target.files?.[0];
+
     if (file) {
       const reader = new FileReader();
+
       reader.onloadend = () => {
         setValue("photo", reader.result as string);
       };
+
       reader.readAsDataURL(file);
     }
   };
@@ -104,7 +116,6 @@ const StudentForm = ({ type, data, onSuccess }: StudentFormProps) => {
     try {
       setLoading(true);
 
-      // Build payload – match Prisma model fields
       const payload: any = {
         studentId: formData.studentId,
         email: formData.email,
@@ -116,15 +127,34 @@ const StudentForm = ({ type, data, onSuccess }: StudentFormProps) => {
         photo: formData.photo || "",
       };
 
-      // Optional fields
-      if (formData.username) payload.username = formData.username;
-      if (formData.bloodType) payload.bloodType = formData.bloodType;
-      if (formData.gender) payload.gender = formData.gender;
-      if (formData.birthday) payload.birthday = new Date(formData.birthday).toISOString();
-      if (formData.classId) payload.classId = formData.classId;
-      if (formData.parentId) payload.parentId = formData.parentId;
+      if (formData.username) {
+        payload.username = formData.username;
+      }
 
-      // Password only on create
+      if (formData.bloodType) {
+        payload.bloodType = formData.bloodType;
+      }
+
+      if (formData.gender) {
+        payload.gender = formData.gender;
+      }
+
+      if (formData.birthday) {
+        payload.birthday = new Date(formData.birthday).toISOString();
+      }
+
+      if (formData.classId) {
+        payload.classId = formData.classId;
+      }
+
+      if (formData.parentId) {
+        payload.parentId = formData.parentId;
+      }
+
+      if (formData.guardianRelation) {
+        payload.guardianRelation = formData.guardianRelation;
+      }
+
       if (type === "create" && formData.password) {
         payload.password = formData.password;
       }
@@ -138,25 +168,30 @@ const StudentForm = ({ type, data, onSuccess }: StudentFormProps) => {
       }
 
       onSuccess?.();
+
     } catch (error: any) {
       console.error("Full error:", error);
-      const message = error?.message || `Failed to ${type} student. Please try again.`;
+
+      const message =
+        error?.message ||
+        `Failed to ${type} student. Please try again.`;
+
       showNotification(message, "error");
+
     } finally {
       setLoading(false);
     }
   });
-
-  return (
+    return (
     <form className="flex flex-col gap-8" onSubmit={onSubmit}>
       <h1 className="text-xl font-semibold">
         {type === "create" ? "Create a new student" : "Update student"}
       </h1>
 
-      {/* ---------- Authentication Information ---------- */}
       <span className="text-xs text-gray-400 font-medium">
         Authentication Information
       </span>
+
       <div className="flex justify-between flex-wrap gap-4">
         <InputField
           label="Student ID"
@@ -165,6 +200,7 @@ const StudentForm = ({ type, data, onSuccess }: StudentFormProps) => {
           register={register}
           error={errors.studentId}
         />
+
         <InputField
           label="Email"
           name="email"
@@ -172,6 +208,7 @@ const StudentForm = ({ type, data, onSuccess }: StudentFormProps) => {
           register={register}
           error={errors.email}
         />
+
         <InputField
           label="Username (optional)"
           name="username"
@@ -179,6 +216,7 @@ const StudentForm = ({ type, data, onSuccess }: StudentFormProps) => {
           register={register}
           error={errors.username}
         />
+
         {type === "create" && (
           <InputField
             label="Password"
@@ -190,10 +228,10 @@ const StudentForm = ({ type, data, onSuccess }: StudentFormProps) => {
         )}
       </div>
 
-      {/* ---------- Personal Information ---------- */}
       <span className="text-xs text-gray-400 font-medium">
         Personal Information
       </span>
+
       <div className="flex justify-between flex-wrap gap-4">
         <InputField
           label="First Name"
@@ -202,6 +240,7 @@ const StudentForm = ({ type, data, onSuccess }: StudentFormProps) => {
           register={register}
           error={errors.firstName}
         />
+
         <InputField
           label="Last Name"
           name="lastName"
@@ -209,6 +248,7 @@ const StudentForm = ({ type, data, onSuccess }: StudentFormProps) => {
           register={register}
           error={errors.lastName}
         />
+
         <InputField
           label="Phone"
           name="phone"
@@ -216,6 +256,7 @@ const StudentForm = ({ type, data, onSuccess }: StudentFormProps) => {
           register={register}
           error={errors.phone}
         />
+
         <InputField
           label="Address"
           name="address"
@@ -223,6 +264,7 @@ const StudentForm = ({ type, data, onSuccess }: StudentFormProps) => {
           register={register}
           error={errors.address}
         />
+
         <InputField
           label="Blood Type"
           name="bloodType"
@@ -231,9 +273,12 @@ const StudentForm = ({ type, data, onSuccess }: StudentFormProps) => {
           error={errors.bloodType}
         />
 
-        {/* Gender dropdown */}
+        {/* Gender */}
         <div className="flex flex-col gap-2 w-full md:w-1/4">
-          <label className="text-xs text-gray-500">Gender</label>
+          <label className="text-xs text-gray-500">
+            Gender
+          </label>
+
           <select
             className="ring-[1.5px] ring-gray-300 p-2 rounded-md text-sm w-full"
             {...register("gender")}
@@ -244,26 +289,26 @@ const StudentForm = ({ type, data, onSuccess }: StudentFormProps) => {
             <option value="FEMALE">Female</option>
             <option value="OTHER">Other</option>
           </select>
-          {errors.gender?.message && (
-            <p className="text-xs text-red-400">{errors.gender.message}</p>
-          )}
         </div>
 
         {/* Birthday */}
         <div className="flex flex-col gap-2 w-full md:w-1/4">
-          <label className="text-xs text-gray-500">Birthday</label>
+          <label className="text-xs text-gray-500">
+            Birthday
+          </label>
+
           <input
             type="date"
             className="ring-[1.5px] ring-gray-300 p-2 rounded-md text-sm w-full"
             {...register("birthday")}
-            defaultValue={data?.birthday ? data.birthday.split("T")[0] : ""}
+            defaultValue={
+              data?.birthday
+                ? data.birthday.split("T")[0]
+                : ""
+            }
           />
-          {errors.birthday?.message && (
-            <p className="text-xs text-red-400">{errors.birthday.message}</p>
-          )}
         </div>
 
-        {/* Grade */}
         <InputField
           label="Grade"
           name="grade"
@@ -275,53 +320,99 @@ const StudentForm = ({ type, data, onSuccess }: StudentFormProps) => {
 
         {/* Class */}
         <div className="flex flex-col gap-2 w-full md:w-1/4">
-          <label className="text-xs text-gray-500">Class</label>
+          <label className="text-xs text-gray-500">
+            Class
+          </label>
+
           <select
             className="ring-[1.5px] ring-gray-300 p-2 rounded-md text-sm w-full"
             {...register("classId")}
             defaultValue={data?.classId || ""}
           >
             <option value="">None</option>
+
             {classes.map((cls) => (
               <option key={cls.id} value={cls.id}>
                 {cls.name}
               </option>
             ))}
           </select>
-          {errors.classId?.message && (
-            <p className="text-xs text-red-400">{errors.classId.message}</p>
-          )}
         </div>
 
-        {/* Parent */}
+        {/* Guardian / Parent */}
         <div className="flex flex-col gap-2 w-full md:w-1/4">
-          <label className="text-xs text-gray-500">Parent</label>
+          <label className="text-xs text-gray-500">
+            Guardian
+          </label>
+
           <select
             className="ring-[1.5px] ring-gray-300 p-2 rounded-md text-sm w-full"
             {...register("parentId")}
             defaultValue={data?.parentId || ""}
           >
-            <option value="">None</option>
+            <option value="">
+              Select Guardian
+            </option>
+
             {parents.map((parent) => (
               <option key={parent.id} value={parent.id}>
                 {parent.name}
               </option>
             ))}
           </select>
-          {errors.parentId?.message && (
-            <p className="text-xs text-red-400">{errors.parentId.message}</p>
-          )}
         </div>
 
-        {/* Photo upload */}
+        {/* Guardian Relation */}
+        <div className="flex flex-col gap-2 w-full md:w-1/4">
+          <label className="text-xs text-gray-500">
+            Guardian Relation
+          </label>
+
+          <select
+            className="ring-[1.5px] ring-gray-300 p-2 rounded-md text-sm w-full"
+            {...register("guardianRelation")}
+            defaultValue={data?.guardianRelation || ""}
+          >
+            <option value="">
+              Select Relation
+            </option>
+
+            <option value="FATHER">
+              Father
+            </option>
+
+            <option value="MOTHER">
+              Mother
+            </option>
+
+            <option value="GUARDIAN">
+              Guardian
+            </option>
+
+            <option value="OTHER">
+              Other
+            </option>
+          </select>
+        </div>
+
+        {/* Photo */}
         <div className="flex flex-col gap-2 w-full md:w-1/4 justify-center">
           <label
             className="text-xs text-gray-500 flex items-center gap-2 cursor-pointer"
             htmlFor="img"
           >
-            <Image src="/upload.png" alt="Upload" width={28} height={28} />
-            <span>Upload a photo</span>
+            <Image
+              src="/upload.png"
+              alt="Upload"
+              width={28}
+              height={28}
+            />
+
+            <span>
+              Upload a photo
+            </span>
           </label>
+
           <input
             type="file"
             id="img"
@@ -329,9 +420,6 @@ const StudentForm = ({ type, data, onSuccess }: StudentFormProps) => {
             onChange={handleFileChange}
             className="hidden"
           />
-          {errors.photo?.message && (
-            <p className="text-xs text-red-400">{errors.photo.message}</p>
-          )}
         </div>
       </div>
 
@@ -340,7 +428,11 @@ const StudentForm = ({ type, data, onSuccess }: StudentFormProps) => {
         disabled={loading}
         className="bg-blue-400 text-white p-2 rounded-md disabled:opacity-50"
       >
-        {loading ? "Saving..." : type === "create" ? "Create" : "Update"}
+        {loading
+          ? "Saving..."
+          : type === "create"
+          ? "Create"
+          : "Update"}
       </button>
     </form>
   );
