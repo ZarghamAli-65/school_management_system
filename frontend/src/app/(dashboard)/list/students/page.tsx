@@ -18,7 +18,16 @@ type Student = {
   photo: string;
   phone?: string;
   grade: number;
-  class: string;
+  class?: {
+    id: number;
+    name: string;
+    section: string;
+    grade: number;
+    academicYear: string;
+    roomNo: string;
+    capacity: number;
+    supervisor: string;
+  };
   address: string;
 };
 
@@ -122,7 +131,7 @@ const StudentListPage = () => {
         />
         <div className="flex flex-col">
           <h3 className="font-semibold">{item.name}</h3>
-          <p className="text-xs text-gray-500">{item.class}</p>
+          <p className="text-xs text-gray-500">{item.class?.name || "-"}</p>
         </div>
       </td>
       <td className="hidden md:table-cell">{item.studentId}</td>

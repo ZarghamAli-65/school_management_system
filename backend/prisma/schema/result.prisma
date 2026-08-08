@@ -1,6 +1,9 @@
 model Result {
   id Int @id @default(autoincrement())
 
+  studentId Int
+  student   Student @relation(fields: [studentId], references: [id])
+
   subjectId Int
   subject   Subject @relation(fields: [subjectId], references: [id])
 
@@ -10,12 +13,17 @@ model Result {
   teacherId Int
   teacher   Teacher @relation(fields: [teacherId], references: [id])
 
-  studentId Int
-  student   Student @relation(fields: [studentId], references: [id])
+  type ResultType
 
-  date  DateTime
-  type  ResultType
-  score Int
+  examId Int?
+  exam   Exam? @relation(fields: [examId], references: [id])
+
+  assignmentId Int?
+  assignment   Assignment? @relation(fields: [assignmentId], references: [id])
+
+  obtainedMarks Int
+
+  remarks String?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

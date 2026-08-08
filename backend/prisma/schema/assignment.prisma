@@ -1,6 +1,9 @@
 model Assignment {
   id Int @id @default(autoincrement())
 
+  title       String
+  description String?
+
   subjectId Int
   subject   Subject @relation(fields: [subjectId], references: [id])
 
@@ -9,6 +12,8 @@ model Assignment {
 
   teacherId Int
   teacher   Teacher @relation(fields: [teacherId], references: [id])
+
+  results Result[]
 
   dueDate DateTime
 

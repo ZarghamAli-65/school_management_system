@@ -1,6 +1,8 @@
 model Exam {
   id Int @id @default(autoincrement())
 
+  title String
+
   subjectId Int
   subject   Subject @relation(fields: [subjectId], references: [id])
 
@@ -10,7 +12,12 @@ model Exam {
   teacherId Int
   teacher   Teacher @relation(fields: [teacherId], references: [id])
 
-  date DateTime
+  results Result[]
+
+  examDate DateTime
+
+  totalMarks   Int
+  passingMarks Int
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

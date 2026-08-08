@@ -10,6 +10,20 @@ model Lesson {
   teacherId Int
   teacher   Teacher @relation(fields: [teacherId], references: [id])
 
+  day Day
+
+  startTime DateTime
+  endTime   DateTime
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+}
+
+enum Day {
+  MONDAY
+  TUESDAY
+  WEDNESDAY
+  THURSDAY
+  FRIDAY
+  SATURDAY
 }

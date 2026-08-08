@@ -1,9 +1,19 @@
 model Class {
-  id         Int    @id @default(autoincrement())
-  name       String @unique
-  capacity   Int
-  grade      Int
-  supervisor String
+  id Int @id @default(autoincrement())
+
+  name String @unique
+
+  section String?
+
+  grade Int
+
+  academicYear String?
+
+  roomNo String?
+
+  capacity Int
+
+  supervisor String?
 
   students Student[]
   teachers TeacherClass[]

@@ -1,7 +1,52 @@
 import { deleteClass } from "./class.api";
+import { deleteLesson } from "./lesson.api";
 import { deleteParent } from "./parent.api";
 import { deleteStudent } from "./student.api";
+import { deleteSubject } from "./subject.api";
 import { deleteTeacher } from "./teacher.api";
+
+export {
+  getStudents,
+  createStudent,
+  updateStudent,
+  deleteStudent,
+} from "./student.api";
+
+export {
+  getParents,
+  createParent,
+  updateParent,
+  deleteParent,
+} from "./parent.api";
+
+export {
+  getTeachers,
+  createTeacher,
+  updateTeacher,
+  deleteTeacher,
+} from "./teacher.api";
+
+export {
+  getClasses,
+  createClass,
+  updateClass,
+  deleteClass,
+} from "./class.api";
+
+export {
+  getSubjects,
+  createSubject,
+  updateSubject,
+  deleteSubject,
+} from "./subject.api";
+
+export {
+  getLessons,
+  getLesson,
+  createLesson,
+  updateLesson,
+  deleteLesson,
+} from "./lesson.api";
 
 export async function deleteResource(table: string, id: number) {
   switch (table) {
@@ -16,6 +61,12 @@ export async function deleteResource(table: string, id: number) {
 
     case "class":
       return deleteClass(id);
+
+    case "subject":
+      return deleteSubject(id);
+
+    case "lesson":
+      return deleteLesson(id);
 
     default:
       throw new Error(`Delete not implemented for ${table}`);

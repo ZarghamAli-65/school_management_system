@@ -1,6 +1,9 @@
 model Subject {
-  id   Int    @id @default(autoincrement())
+  id Int @id @default(autoincrement())
+
   name String @unique
+  description String?
+  code String @unique
 
   teachers    TeacherSubject[]
   lessons     Lesson[]

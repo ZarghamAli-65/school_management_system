@@ -5,5 +5,7 @@ model TeacherSubject {
   teacher Teacher @relation(fields: [teacherId], references: [id])
   subject Subject @relation(fields: [subjectId], references: [id])
 
+  assignedAt DateTime @default(now())
+
   @@id([teacherId, subjectId])
 }

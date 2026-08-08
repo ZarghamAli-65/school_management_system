@@ -7,19 +7,27 @@ import { deleteResource } from "@/lib/api";
 import { useNotification } from "@/components/NotificationProvider";
 
 const TeacherForm = dynamic(() => import("./forms/TeacherForm"), {
-  loading: () => <h1>Loading...</h1>,
+  loading: () => <>Loading...</>,
 });
 
 const StudentForm = dynamic(() => import("./forms/StudentForm"), {
-  loading: () => <h1>Loading...</h1>,
+  loading: () => <>Loading...</>,
 });
 
 const ParentForm = dynamic(() => import("./forms/ParentForm"), {
-  loading: () => <h1>Loading...</h1>,
+  loading: () => <>Loading...</>,
 });
 
 const ClassForm = dynamic(() => import("./forms/ClassForm"), {
-  loading: () => <h1>Loading...</h1>,
+  loading: () => <>Loading...</>,
+});
+
+const SubjectForm = dynamic(() => import("./forms/SubjectForm"), {
+  loading: () => <>Loading...</>,
+});
+
+const LessonForm = dynamic(() => import("./forms/LessonForm"), {
+  loading: () => <>Loading...</>,
 });
 
 export interface FormProps {
@@ -28,11 +36,13 @@ export interface FormProps {
   onSuccess?: () => void;
 }
 
-const forms: Record<string, React.ComponentType<FormProps>> = {
+const forms: Record<string, React.ComponentType<any>> = {
   teacher: TeacherForm,
   student: StudentForm,
   parent: ParentForm,
   class: ClassForm,
+  subject: SubjectForm,
+  lesson: LessonForm,
 };
 
 type FormModalProps = {
@@ -84,7 +94,10 @@ const FormModal = ({
 
       await deleteResource(table, id);
 
-      showNotification(`${table} deleted successfully!`, "success");
+      showNotification(
+        `${table} deleted successfully!`,
+        "success"
+      );
 
       setOpen(false);
       onSuccess?.();
@@ -92,7 +105,8 @@ const FormModal = ({
       console.error(error);
 
       showNotification(
-        error?.message || `Failed to delete ${table}. Please try again.`,
+        error?.message ||
+          `Failed to delete ${table}. Please try again.`,
         "error"
       );
     } finally {
@@ -105,8 +119,8 @@ const FormModal = ({
       return (
         <div className="p-4 flex flex-col gap-4">
           <span className="text-center font-medium">
-            All data will be lost. Are you sure you want to delete this{" "}
-            {table}?
+            All data will be lost. Are you sure you want to
+            delete this {table}?
           </span>
 
           <button
@@ -152,7 +166,12 @@ const FormModal = ({
         className={`${size} flex items-center justify-center rounded-full ${bgColor}`}
         onClick={() => setOpen(true)}
       >
-        <Image src={`/${type}.png`} alt="" width={16} height={16} />
+        <Image
+          src={`/${type}.png`}
+          alt=""
+          width={16}
+          height={16}
+        />
       </button>
 
       {open && (
@@ -164,7 +183,12 @@ const FormModal = ({
               className="absolute top-4 right-4 cursor-pointer"
               onClick={() => setOpen(false)}
             >
-              <Image src="/close.png" alt="Close" width={14} height={14} />
+              <Image
+                src="/close.png"
+                alt="Close"
+                width={14}
+                height={14}
+              />
             </div>
           </div>
         </div>

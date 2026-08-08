@@ -1,24 +1,17 @@
 model Parent {
-  id       Int    @id @default(autoincrement())
-
-  username String @unique
-  email    String @unique
-  password String
-
-  firstName String
-  lastName  String
-
-  cnic String @unique
-
-  phone   String?
-  address String?
-
+  id        Int       @id @default(autoincrement())
+  email     String    @unique
+  phone     String?
+  address   String?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
   bloodType String?
+  firstName String
   gender    Gender?
   image     String?
-
-  students Student[]
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  lastName  String
+  password  String
+  username  String    @unique
+  cnic      String    @unique
+  students  Student[]
 }
