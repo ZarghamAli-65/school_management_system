@@ -11,6 +11,7 @@ import { ParentModule } from './parent/parent.module';
 import { ClassModule } from './class/class.module';
 import { SubjectModule } from "./subject/subject.module";
 import { LessonModule } from './lesson/lesson.module';
+import { AssignmentModule } from './assignment/assignment.module';
 
 @Module({
   imports: [
@@ -26,6 +27,7 @@ import { LessonModule } from './lesson/lesson.module';
     ClassModule,
     SubjectModule,
     LessonModule,
+    AssignmentModule,
   ],
   controllers: [AppController],
   providers: [AppService],

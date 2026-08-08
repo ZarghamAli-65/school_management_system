@@ -3,3 +3,22 @@ student data loading error
 student grade and class issue
 
 student ui (edit button, create)
+
+student age check
+
+proper errors statements
+
+blood type dropdown
+
+cnic limit to only 13
+
+supervisor select from getTeachers
+class select from class (section)
+
+lesson form should select grade(section) and class
+
+assignment form should select grade(section) and class
+
+
+have to reload assignment to see new assignment should be auto
+assignment name should be shown
