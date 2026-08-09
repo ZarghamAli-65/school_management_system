@@ -34,6 +34,10 @@ const AssignmentForm = dynamic(() => import("./forms/AssignmentForm"), {
   loading: () => <>Loading...</>,
 });
 
+const ExamForm = dynamic(() => import("./forms/ExamForm"), {
+  loading: () => <>Loading...</>,
+});
+
 export interface FormProps {
   type: "create" | "update";
   data?: any;
@@ -48,6 +52,7 @@ const forms: Record<string, React.ComponentType<any>> = {
   subject: SubjectForm,
   lesson: LessonForm,
   assignment: AssignmentForm,
+  exam: ExamForm,
 };
 
 type FormModalProps = {

@@ -22,3 +22,10 @@ assignment form should select grade(section) and class
 
 have to reload assignment to see new assignment should be auto
 assignment name should be shown
+
+exam can not delete when having results (same conditions for others)
+
+user-role checking in all useeffect to chck user exist or not
+
+exam date is showing less then current (can not be less than current)
+have to reload to see new entry
