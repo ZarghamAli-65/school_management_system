@@ -15,6 +15,7 @@ import { AssignmentModule } from './assignment/assignment.module';
 import { ExamModule } from './exam/exam.module';
 import { ResultModule } from './result/result.module';
 import { AnnouncementModule } from './announcement/announcement.module';
+import { EventModule } from './event/event.module';
 
 @Module({
   imports: [
@@ -34,6 +35,7 @@ import { AnnouncementModule } from './announcement/announcement.module';
     AnnouncementModule,
     ExamModule,
     ResultModule,
+    EventModule,
   ],
   controllers: [AppController],
   providers: [AppService],

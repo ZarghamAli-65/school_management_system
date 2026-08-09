@@ -1,11 +1,17 @@
+// app/(dashboard)/list/events/page.tsx
+"use client";
+
+import { useEffect, useState } from "react";
 import FormModal from "@/components/FormModal";
 import Pagination from "@/components/Pagination";
 import Table from "@/components/Table";
 import TableSearch from "@/components/TableSearch";
-import { eventsData, role } from "@/lib/data";
+import { role } from "@/lib/data"; // keep for role checks
 import Image from "next/image";
+import { getEvents } from "@/lib/api/event.api";
 
-type Event = {
+// Type for the row data displayed in the table
+type EventRow = {
   id: number;
   title: string;
   class: string;
@@ -45,7 +51,46 @@ const columns = [
 ];
 
 const EventListPage = () => {
-  const renderRow = (item: Event) => (
+  const [events, setEvents] = useState<EventRow[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchEvents = async () => {
+      try {
+        setLoading(true);
+        const data = await getEvents();
+        // Map API response to table row format
+        const rows: EventRow[] = data.map((item: any) => ({
+          id: item.id,
+          title: item.title,
+          class: item.class?.name || "All Classes", // or "N/A" if class is null
+          date: new Date(item.eventDate).toLocaleDateString("en-US", {
+            year: "numeric",
+            month: "short",
+            day: "numeric",
+          }),
+          startTime: new Date(item.startTime).toLocaleTimeString("en-US", {
+            hour: "2-digit",
+            minute: "2-digit",
+          }),
+          endTime: new Date(item.endTime).toLocaleTimeString("en-US", {
+            hour: "2-digit",
+            minute: "2-digit",
+          }),
+        }));
+        setEvents(rows);
+      } catch (err: any) {
+        setError(err.message || "Failed to load events");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchEvents();
+  }, []);
+
+  const renderRow = (item: EventRow) => (
     <tr
       key={item.id}
       className="border-b border-gray-200 even:bg-slate-50 text-sm hover:bg-lamaPurpleLight"
@@ -68,6 +113,24 @@ const EventListPage = () => {
     </tr>
   );
 
+  // Loading state
+  if (loading) {
+    return (
+      <div className="bg-white p-4 rounded-md flex-1 m-4 mt-0 flex items-center justify-center">
+        <div className="text-gray-500">Loading events...</div>
+      </div>
+    );
+  }
+
+  // Error state
+  if (error) {
+    return (
+      <div className="bg-white p-4 rounded-md flex-1 m-4 mt-0 flex items-center justify-center text-red-500">
+        Error: {error}
+      </div>
+    );
+  }
+
   return (
     <div className="bg-white p-4 rounded-md flex-1 m-4 mt-0">
       {/* TOP */}
@@ -87,7 +150,7 @@ const EventListPage = () => {
         </div>
       </div>
       {/* LIST */}
-      <Table columns={columns} renderRow={renderRow} data={eventsData} />
+      <Table columns={columns} renderRow={renderRow} data={events} />
       {/* PAGINATION */}
       <Pagination />
     </div>

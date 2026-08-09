@@ -42,6 +42,11 @@ const ResultForm = dynamic(() => import("./forms/ResultForm"), {
   loading: () => <>Loading...</>,
 });
 
+const EventForm = dynamic(() => import("./forms/EventForm"), {
+  loading: () => <>Loading...</>,
+});
+
+
 const AnnouncementForm = dynamic(
   () => import("./forms/AnnouncementForm"),
   {
@@ -65,6 +70,7 @@ const forms: Record<string, React.ComponentType<any>> = {
   assignment: AssignmentForm,
   exam: ExamForm,
   result: ResultForm,
+  event: EventForm,
   announcement: AnnouncementForm,
 };
 
