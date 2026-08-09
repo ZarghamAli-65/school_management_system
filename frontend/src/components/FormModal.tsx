@@ -42,6 +42,13 @@ const ResultForm = dynamic(() => import("./forms/ResultForm"), {
   loading: () => <>Loading...</>,
 });
 
+const AnnouncementForm = dynamic(
+  () => import("./forms/AnnouncementForm"),
+  {
+    loading: () => <>Loading...</>,
+  },
+);
+
 export interface FormProps {
   type: "create" | "update";
   data?: any;
@@ -58,6 +65,7 @@ const forms: Record<string, React.ComponentType<any>> = {
   assignment: AssignmentForm,
   exam: ExamForm,
   result: ResultForm,
+  announcement: AnnouncementForm,
 };
 
 type FormModalProps = {
@@ -93,8 +101,8 @@ const FormModal = ({
     type === "create"
       ? "bg-yellow-300"
       : type === "update"
-      ? "bg-sky-300"
-      : "bg-purple-300";
+        ? "bg-sky-300"
+        : "bg-purple-300";
 
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -111,7 +119,7 @@ const FormModal = ({
 
       showNotification(
         `${table} deleted successfully!`,
-        "success"
+        "success",
       );
 
       setOpen(false);
@@ -122,7 +130,7 @@ const FormModal = ({
       showNotification(
         error?.message ||
           `Failed to delete ${table}. Please try again.`,
-        "error"
+        "error",
       );
     } finally {
       setLoading(false);
@@ -132,7 +140,7 @@ const FormModal = ({
   const Form = () => {
     if (type === "delete" && id) {
       return (
-        <div className="p-4 flex flex-col gap-4">
+        <div className="p-4 flex flex-col gap-6">
           <span className="text-center font-medium">
             All data will be lost. Are you sure you want to
             delete this {table}?
@@ -172,7 +180,11 @@ const FormModal = ({
       );
     }
 
-    return <p className="text-red-500">Form not found!</p>;
+    return (
+      <p className="text-red-500">
+        Form not found!
+      </p>
+    );
   };
 
   return (
@@ -213,3 +225,4 @@ const FormModal = ({
 };
 
 export default FormModal;
+

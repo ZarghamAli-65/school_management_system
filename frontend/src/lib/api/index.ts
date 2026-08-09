@@ -1,3 +1,4 @@
+import { deleteAnnouncement } from "./announcement.api";
 import { deleteClass } from "./class.api";
 import { deleteLesson } from "./lesson.api";
 import { deleteParent } from "./parent.api";
@@ -48,6 +49,14 @@ export {
   deleteLesson,
 } from "./lesson.api";
 
+export {
+  getAnnouncements,
+  getAnnouncement,
+  createAnnouncement,
+  updateAnnouncement,
+  deleteAnnouncement,
+} from "./announcement.api";
+
 export async function deleteResource(table: string, id: number) {
   switch (table) {
     case "student":
@@ -67,6 +76,9 @@ export async function deleteResource(table: string, id: number) {
 
     case "lesson":
       return deleteLesson(id);
+
+    case "announcement":
+      return deleteAnnouncement(id);
 
     default:
       throw new Error(`Delete not implemented for ${table}`);

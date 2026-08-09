@@ -14,6 +14,7 @@ import { LessonModule } from './lesson/lesson.module';
 import { AssignmentModule } from './assignment/assignment.module';
 import { ExamModule } from './exam/exam.module';
 import { ResultModule } from './result/result.module';
+import { AnnouncementModule } from './announcement/announcement.module';
 
 @Module({
   imports: [
@@ -30,6 +31,7 @@ import { ResultModule } from './result/result.module';
     SubjectModule,
     LessonModule,
     AssignmentModule,
+    AnnouncementModule,
     ExamModule,
     ResultModule,
   ],
