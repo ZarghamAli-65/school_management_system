@@ -38,6 +38,10 @@ const ExamForm = dynamic(() => import("./forms/ExamForm"), {
   loading: () => <>Loading...</>,
 });
 
+const ResultForm = dynamic(() => import("./forms/ResultForm"), {
+  loading: () => <>Loading...</>,
+});
+
 export interface FormProps {
   type: "create" | "update";
   data?: any;
@@ -53,6 +57,7 @@ const forms: Record<string, React.ComponentType<any>> = {
   lesson: LessonForm,
   assignment: AssignmentForm,
   exam: ExamForm,
+  result: ResultForm,
 };
 
 type FormModalProps = {

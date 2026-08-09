@@ -13,6 +13,7 @@ import { SubjectModule } from "./subject/subject.module";
 import { LessonModule } from './lesson/lesson.module';
 import { AssignmentModule } from './assignment/assignment.module';
 import { ExamModule } from './exam/exam.module';
+import { ResultModule } from './result/result.module';
 
 @Module({
   imports: [
@@ -30,6 +31,7 @@ import { ExamModule } from './exam/exam.module';
     LessonModule,
     AssignmentModule,
     ExamModule,
+    ResultModule,
   ],
   controllers: [AppController],
   providers: [AppService],
