@@ -1,9 +1,13 @@
 model Subject {
   id Int @id @default(autoincrement())
 
-  name        String  @unique
-  description String?
   code        String  @unique
+  name        String
+  shortName   String?
+  description String?
+
+  gradeLevel   String?
+  category     String?
 
   teachers    TeacherSubject[]
   lessons     Lesson[]
@@ -11,6 +15,7 @@ model Subject {
   assignments Assignment[]
   results     Result[]
 
+  deletedAt    DateTime?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }

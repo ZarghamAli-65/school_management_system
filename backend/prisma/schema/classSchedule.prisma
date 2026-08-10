@@ -1,4 +1,4 @@
-model Lesson {
+model ClassSchedule {
   id Int @id @default(autoincrement())
 
   subjectId Int
@@ -17,13 +17,4 @@ model Lesson {
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-}
-
-enum Day {
-  MONDAY
-  TUESDAY
-  WEDNESDAY
-  THURSDAY
-  FRIDAY
-  SATURDAY
 }

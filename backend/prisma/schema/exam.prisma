@@ -1,15 +1,10 @@
-enum ExamStatus {
-  DRAFT
-  PUBLISHED
-  COMPLETED
-  CANCELLED
-}
 
 model Exam {
   id Int @id @default(autoincrement())
 
   title       String
   description String?
+  code        String? @unique
 
   subjectId Int
   subject   Subject @relation(fields: [subjectId], references: [id])
@@ -20,13 +15,20 @@ model Exam {
   teacherId Int
   teacher   Teacher @relation(fields: [teacherId], references: [id])
 
+  type ExamType @default(FINAL)
+
   examDate        DateTime
+  startTime       DateTime?
+  endTime         DateTime?
   durationMinutes Int?
 
   totalMarks   Int
   passingMarks Int
 
   status ExamStatus @default(DRAFT)
+
+  instructions String?
+  roomNo       String?
 
   results Result[]
 

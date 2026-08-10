@@ -1,23 +1,21 @@
 model Class {
-  id Int @id @default(autoincrement())
+  id        Int     @id @default(autoincrement())
+  section   String?
+  grade     Int                 // e.g., 9, 10
+  academicYear String?           // e.g., "2025-2026"
 
-  name String @unique
+  roomNo    String?
+  capacity  Int                  // max students
+  enrolledCount Int?             // optional cache, or compute via relation
 
-  section String?
+  supervisor String?             // could be name or relation to Teacher
 
-  grade Int
+  deletedAt DateTime?
+  isActive  Boolean?             @default(true) // maybe derived from status
 
-  academicYear String?
-
-  roomNo String?
-
-  capacity Int
-
-  supervisor String?
-
-  students Student[]
-  teachers TeacherClass[]
-
+  // Relations
+  students      Student[]
+  teachers      TeacherClass[]
   lessons       Lesson[]
   exams         Exam[]
   assignments   Assignment[]
@@ -25,6 +23,6 @@ model Class {
   events        Event[]
   announcements Announcement[]
 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
 }
