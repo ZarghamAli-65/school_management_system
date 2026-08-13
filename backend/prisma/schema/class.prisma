@@ -16,7 +16,7 @@ model Class {
   // Relations
   students      Student[]
   teachers      TeacherClass[]
-  lessons       Lesson[]
+  classSchedules ClassSchedule[]
   exams         Exam[]
   assignments   Assignment[]
   results       Result[]

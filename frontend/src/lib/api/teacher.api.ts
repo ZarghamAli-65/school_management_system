@@ -1,5 +1,58 @@
 import { API_URL, getAuthToken } from "./client";
 
+export type TeacherPayload = {
+  teacherId: string;
+  employeeId?: string;
+  email: string;
+  username?: string;
+  password?: string;
+
+  firstName?: string;
+  lastName?: string;
+  fatherHusbandName?: string;
+  photo?: string;
+
+  phone?: string;
+  alternatePhone?: string;
+  address?: string;
+  city?: string;
+  state?: string;
+  country?: string;
+  postalCode?: string;
+
+  dateOfBirth?: string;
+  gender?: "MALE" | "FEMALE" | "OTHER";
+  maritalStatus?: "SINGLE" | "MARRIED";
+  bloodType?: string;
+  nationality?: string;
+
+  nationalId?: string;
+  passportNo?: string;
+
+  joiningDate?: string;
+  employmentType?: "FULL_TIME" | "CONTRACT" | "INTERN";
+  employmentStatus?:
+    | "ACTIVE"
+    | "ON_LEAVE"
+    | "RESIGNED"
+    | "TERMINATED"
+    | "RETIRED";
+
+  designation?: string;
+
+  latestQualification?: string;
+  specialization?: string;
+  experienceYears?: number;
+  experienceField?: string;
+  bio?: string;
+
+  emergencyContactName?: string;
+  emergencyContactPhone?: string;
+  emergencyContactRelation?: string;
+
+  isActive?: boolean;
+};
+
 // Get all teachers
 export async function getTeachers() {
   const token = getAuthToken();
@@ -14,7 +67,6 @@ export async function getTeachers() {
 
   if (!res.ok) {
     const text = await res.text();
-    console.log("Error response:", text);
 
     if (res.status === 401) {
       throw new Error("401 - Unauthorized. Please login again.");
@@ -27,19 +79,7 @@ export async function getTeachers() {
 }
 
 // Create teacher
-export async function createTeacher(data: {
-  teacherId: string;
-  username: string;
-  email: string;
-  firstName: string;
-  lastName: string;
-  phone?: string;
-  address?: string;
-  bloodType: string;
-  birthday: string;
-  gender: "MALE" | "FEMALE";
-  photo?: string;
-}) {
+export async function createTeacher(data: TeacherPayload) {
   const token = getAuthToken();
 
   const res = await fetch(`${API_URL}/teachers`, {
@@ -56,7 +96,8 @@ export async function createTeacher(data: {
 
     try {
       const json = JSON.parse(errorText);
-      errorText = json.message || json.error || JSON.stringify(json);
+      errorText =
+        json.message || json.error || JSON.stringify(json);
     } catch {
       // Ignore if not JSON
     }
@@ -68,7 +109,10 @@ export async function createTeacher(data: {
 }
 
 // Update teacher
-export async function updateTeacher(id: number, data: any) {
+export async function updateTeacher(
+  id: number,
+  data: Partial<TeacherPayload>,
+) {
   const token = getAuthToken();
 
   const res = await fetch(`${API_URL}/teachers/${id}`, {
@@ -81,7 +125,17 @@ export async function updateTeacher(id: number, data: any) {
   });
 
   if (!res.ok) {
-    throw new Error(await res.text());
+    let errorText = await res.text();
+
+    try {
+      const json = JSON.parse(errorText);
+      errorText =
+        json.message || json.error || JSON.stringify(json);
+    } catch {
+      // Ignore if not JSON
+    }
+
+    throw new Error(`Server error (${res.status}): ${errorText}`);
   }
 
   return res.json();

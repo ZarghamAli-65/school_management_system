@@ -10,7 +10,7 @@ model Subject {
   category     String?
 
   teachers    TeacherSubject[]
-  lessons     Lesson[]
+  classSchedules ClassSchedule[]
   exams       Exam[]
   assignments Assignment[]
   results     Result[]

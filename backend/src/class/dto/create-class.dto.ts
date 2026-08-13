@@ -1,34 +1,44 @@
-// src/classes/dto/create-class.dto.ts
-import { IsString, IsInt, Min, Max, IsOptional } from 'class-validator';
+import {
+  IsString,
+  IsInt,
+  Min,
+  Max,
+  IsOptional,
+  IsBoolean,
+} from "class-validator";
 
 export class CreateClassDto {
+  @IsOptional()
   @IsString()
-  name!: string;
+  section?: string;
+
+  @IsInt()
+  @Min(1)
+  @Max(12)
+  grade!: number;
+
+  @IsOptional()
+  @IsString()
+  academicYear?: string;
+
+  @IsOptional()
+  @IsString()
+  roomNo?: string;
 
   @IsInt()
   @Min(1)
   capacity!: number;
 
+  @IsOptional()
   @IsInt()
-  @Min(1)
-  @Max(12) // assuming grade 1–12
-  grade!: number;
+  @Min(0)
+  enrolledCount?: number;
 
+  @IsOptional()
   @IsString()
-  supervisor!: string;
-
-  // Optional relations – you can accept arrays of IDs to connect
-  @IsOptional()
-  @IsInt({ each: true })
-  studentIds?: number[];
+  supervisor?: string;
 
   @IsOptional()
-  @IsInt({ each: true })
-  teacherIds?: number[];
-
-  @IsOptional()
-  @IsInt({ each: true })
-  lessonIds?: number[];
-
-  // ... add other relation IDs as needed
+  @IsBoolean()
+  isActive?: boolean;
 }

@@ -11,9 +11,8 @@ import { UpdateLessonDto } from './dto/update-lesson.dto';
 export class LessonService {
   constructor(private prisma: PrismaService) {}
 
-  // Get all lessons
   async findAll() {
-    return this.prisma.lesson.findMany({
+    return this.prisma.classSchedule.findMany({
       include: {
         subject: true,
         class: true,
@@ -22,9 +21,8 @@ export class LessonService {
     });
   }
 
-  // Get one lesson
   async findOne(id: number) {
-    const lesson = await this.prisma.lesson.findUnique({
+    const lesson = await this.prisma.classSchedule.findUnique({
       where: { id },
       include: {
         subject: true,
@@ -40,10 +38,9 @@ export class LessonService {
     return lesson;
   }
 
-  // Create lesson
   async create(dto: CreateLessonDto) {
     try {
-      return await this.prisma.lesson.create({
+      return await this.prisma.classSchedule.create({
         data: {
           ...dto,
           startTime: new Date(dto.startTime),
@@ -62,9 +59,8 @@ export class LessonService {
     }
   }
 
-  // Update lesson
   async update(id: number, dto: UpdateLessonDto) {
-    const lesson = await this.prisma.lesson.findUnique({
+    const lesson = await this.prisma.classSchedule.findUnique({
       where: { id },
     });
 
@@ -73,7 +69,7 @@ export class LessonService {
     }
 
     try {
-      return await this.prisma.lesson.update({
+      return await this.prisma.classSchedule.update({
         where: { id },
         data: {
           ...dto,
@@ -97,9 +93,8 @@ export class LessonService {
     }
   }
 
-  // Delete lesson
   async remove(id: number) {
-    const lesson = await this.prisma.lesson.findUnique({
+    const lesson = await this.prisma.classSchedule.findUnique({
       where: { id },
     });
 
@@ -108,7 +103,7 @@ export class LessonService {
     }
 
     try {
-      await this.prisma.lesson.delete({
+      await this.prisma.classSchedule.delete({
         where: { id },
       });
 

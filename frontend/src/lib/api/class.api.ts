@@ -1,13 +1,14 @@
 import { API_URL, getAuthToken } from "./client";
 
 export interface ClassPayload {
-  name: string;
-  capacity: number;
+  section?: string;
   grade: number;
-  supervisor: string;
-  studentIds?: number[];
-  teacherIds?: number[];
-  lessonIds?: number[];
+  academicYear?: string;
+  roomNo?: string;
+  capacity: number;
+  enrolledCount?: number;
+  supervisor?: string;
+  isActive?: boolean;
 }
 
 const getHeaders = () => {
@@ -19,9 +20,7 @@ const getHeaders = () => {
   };
 };
 
-// =========================
 // Get All Classes
-// =========================
 export async function getClasses() {
   const res = await fetch(`${API_URL}/classes`, {
     cache: "no-store",
@@ -43,9 +42,7 @@ export async function getClasses() {
   return res.json();
 }
 
-// =========================
 // Get Single Class
-// =========================
 export async function getClass(id: number) {
   const res = await fetch(`${API_URL}/classes/${id}`, {
     cache: "no-store",
@@ -71,9 +68,7 @@ export async function getClass(id: number) {
   return res.json();
 }
 
-// =========================
 // Create Class
-// =========================
 export async function createClass(data: ClassPayload) {
   const res = await fetch(`${API_URL}/classes`, {
     method: "POST",
@@ -86,24 +81,28 @@ export async function createClass(data: ClassPayload) {
 
     try {
       const json = JSON.parse(errorText);
-      errorText = json.message || json.error || JSON.stringify(json);
+
+      errorText =
+        json.message ||
+        json.error ||
+        JSON.stringify(json);
     } catch {}
 
-    throw new Error(`Server error (${res.status}): ${errorText}`);
+    throw new Error(
+      `Server error (${res.status}): ${errorText}`
+    );
   }
 
   return res.json();
 }
 
-// =========================
 // Update Class
-// =========================
 export async function updateClass(
   id: number,
   data: Partial<ClassPayload>
 ) {
   const res = await fetch(`${API_URL}/classes/${id}`, {
-    method: "PATCH",
+    method: "PUT",
     headers: getHeaders(),
     body: JSON.stringify(data),
   });
@@ -113,18 +112,22 @@ export async function updateClass(
 
     try {
       const json = JSON.parse(errorText);
-      errorText = json.message || json.error || JSON.stringify(json);
+
+      errorText =
+        json.message ||
+        json.error ||
+        JSON.stringify(json);
     } catch {}
 
-    throw new Error(`Server error (${res.status}): ${errorText}`);
+    throw new Error(
+      `Server error (${res.status}): ${errorText}`
+    );
   }
 
   return res.json();
 }
 
-// =========================
 // Delete Class
-// =========================
 export async function deleteClass(id: number) {
   const res = await fetch(`${API_URL}/classes/${id}`, {
     method: "DELETE",
@@ -133,7 +136,10 @@ export async function deleteClass(id: number) {
 
   if (!res.ok) {
     const text = await res.text();
-    throw new Error(`Status ${res.status}: ${text}`);
+
+    throw new Error(
+      `Status ${res.status}: ${text}`
+    );
   }
 
   return res.json();

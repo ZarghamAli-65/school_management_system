@@ -13,15 +13,27 @@ import { useEffect, useState } from "react";
 type Teacher = {
   id: number;
   teacherId: string;
+  employeeId?: string;
   username?: string;
   email?: string;
+
   firstName?: string;
   lastName?: string;
   photo?: string;
+
   phone?: string;
   address?: string;
-  subjects?: any[];
-  classes?: any[];
+  designation?: string;
+  employmentStatus?: string;
+  isActive?: boolean;
+
+  subjects?: {
+    subject: any;
+  }[];
+
+  classes?: {
+    class: any;
+  }[];
 };
 
 const columns = [
@@ -35,6 +47,11 @@ const columns = [
     className: "hidden md:table-cell",
   },
   {
+    header: "Employee ID",
+    accessor: "employeeId",
+    className: "hidden lg:table-cell",
+  },
+  {
     header: "Subjects",
     accessor: "subjects",
     className: "hidden md:table-cell",
@@ -45,13 +62,13 @@ const columns = [
     className: "hidden md:table-cell",
   },
   {
-    header: "Phone",
-    accessor: "phone",
+    header: "Designation",
+    accessor: "designation",
     className: "hidden lg:table-cell",
   },
   {
-    header: "Address",
-    accessor: "address",
+    header: "Status",
+    accessor: "status",
     className: "hidden lg:table-cell",
   },
   {
@@ -60,12 +77,9 @@ const columns = [
   },
 ];
 
-
 const TeacherListPage = () => {
-
   const [teachers, setTeachers] = useState<Teacher[]>([]);
   const [loading, setLoading] = useState(true);
-
 
   const fetchTeachers = async () => {
     try {
@@ -74,7 +88,6 @@ const TeacherListPage = () => {
       const data = await getTeachers();
 
       setTeachers(data);
-
     } catch (error) {
       console.error("Failed to fetch teachers:", error);
     } finally {
@@ -82,22 +95,17 @@ const TeacherListPage = () => {
     }
   };
 
-
   useEffect(() => {
     fetchTeachers();
   }, []);
 
-
-
   const renderRow = (item: Teacher) => (
-
     <tr
       key={item.id}
       className="border-b border-gray-200 even:bg-slate-50 text-sm hover:bg-lamaPurpleLight"
     >
-
+      {/* Info */}
       <td className="flex items-center gap-4 p-4">
-
         <Image
           src={item.photo || "/avatar.png"}
           alt=""
@@ -107,74 +115,65 @@ const TeacherListPage = () => {
         />
 
         <div className="flex flex-col">
-
           <h3 className="font-semibold">
-            {item.firstName} {item.lastName}
+            {item.firstName || ""} {item.lastName || ""}
           </h3>
 
           <p className="text-xs text-gray-500">
             {item.email}
           </p>
-
         </div>
-
       </td>
 
-
+      {/* Teacher ID */}
       <td className="hidden md:table-cell">
         {item.teacherId}
       </td>
 
+      {/* Employee ID */}
+      <td className="hidden lg:table-cell">
+        {item.employeeId || "-"}
+      </td>
 
+      {/* Subjects */}
       <td className="hidden md:table-cell">
         {item.subjects?.length || 0}
       </td>
 
-
+      {/* Classes */}
       <td className="hidden md:table-cell">
         {item.classes?.length || 0}
       </td>
 
-
+      {/* Designation */}
       <td className="hidden lg:table-cell">
-        {item.phone}
+        {item.designation || "-"}
       </td>
 
-
+      {/* Status */}
       <td className="hidden lg:table-cell">
-        {item.address}
+        {item.employmentStatus || "-"}
       </td>
 
-
+      {/* Actions */}
       <td>
-
         <div className="flex items-center gap-2">
-
-
           <Link href={`/list/teachers/${item.id}`}>
-
             <button
               title="View Teacher"
               className="w-7 h-7 flex items-center justify-center rounded-full bg-lamaSky"
             >
-
               <Image
                 src="/view.png"
                 alt="View"
                 width={16}
                 height={16}
               />
-
             </button>
-
           </Link>
 
-
-
           {role === "admin" && (
-
             <>
-
               <FormModal
                 table="teacher"
                 type="update"
@@ -182,137 +181,78 @@ const TeacherListPage = () => {
                 onSuccess={fetchTeachers}
               />
 
-
               <FormModal
                 table="teacher"
                 type="delete"
                 id={item.id}
                 onSuccess={fetchTeachers}
               />
-
             </>
-
           )}
-
-
         </div>
-
       </td>
-
-
     </tr>
-
   );
 
-
-
   return (
-
     <div className="bg-white p-4 rounded-md flex-1 m-4 mt-0">
-
-
       <div className="flex items-center justify-between">
-
-
         <h1 className="hidden md:block text-lg font-semibold">
           All Teachers
         </h1>
 
-
-
         <div className="flex flex-col md:flex-row items-center gap-4 w-full md:w-auto">
-
-
           <TableSearch />
 
-
-
           <div className="flex items-center gap-4 self-end">
-
-
             <button
               title="Filter"
               className="w-8 h-8 flex items-center justify-center rounded-full bg-lamaYellow"
             >
-
               <Image
                 src="/filter.png"
                 alt="Filter"
                 width={14}
                 height={14}
               />
-
             </button>
-
-
 
             <button
               title="Sort"
               className="w-8 h-8 flex items-center justify-center rounded-full bg-lamaYellow"
             >
-
               <Image
                 src="/sort.png"
                 alt="Sort"
                 width={14}
                 height={14}
               />
-
             </button>
 
-
-
             {role === "admin" && (
-
               <FormModal
                 table="teacher"
                 type="create"
                 onSuccess={fetchTeachers}
               />
-
             )}
-
-
           </div>
-
-
         </div>
-
-
       </div>
 
-
-
-
       {loading ? (
-
-        <p className="p-4">
-          Loading teachers...
-        </p>
-
-
+        <p className="p-4">Loading teachers...</p>
       ) : (
-
-
         <Table
           columns={columns}
           renderRow={renderRow}
           data={teachers}
         />
-
-
       )}
 
-
-
       <Pagination />
-
-
     </div>
-
   );
-
 };
-
 
 export default TeacherListPage;

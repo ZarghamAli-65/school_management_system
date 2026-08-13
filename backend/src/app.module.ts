@@ -9,7 +9,7 @@ import configuration from './config/configuration';
 import { StudentModule } from './student/student.module';
 import { ParentModule } from './parent/parent.module';
 import { ClassModule } from './class/class.module';
-import { SubjectModule } from "./subject/subject.module";
+import { SubjectModule } from './subject/subject.module';
 import { LessonModule } from './lesson/lesson.module';
 import { AssignmentModule } from './assignment/assignment.module';
 import { ExamModule } from './exam/exam.module';

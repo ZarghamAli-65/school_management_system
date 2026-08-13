@@ -13,21 +13,25 @@ import { role } from "@/lib/data";
 
 type Class = {
   id: number;
-  name: string;
-  capacity: number;
+
+  section?: string;
   grade: number;
-  supervisor: string;
+  academicYear?: string;
+  roomNo?: string;
+
+  capacity: number;
+  enrolledCount?: number;
+
+  supervisor?: string;
+
+  deletedAt?: string;
+  isActive?: boolean;
 };
 
 const columns = [
   {
-    header: "Class Name",
-    accessor: "name",
-  },
-  {
-    header: "Capacity",
-    accessor: "capacity",
-    className: "hidden md:table-cell",
+    header: "Section",
+    accessor: "section",
   },
   {
     header: "Grade",
@@ -35,8 +39,33 @@ const columns = [
     className: "hidden md:table-cell",
   },
   {
+    header: "Academic Year",
+    accessor: "academicYear",
+    className: "hidden md:table-cell",
+  },
+  {
+    header: "Room",
+    accessor: "roomNo",
+    className: "hidden lg:table-cell",
+  },
+  {
+    header: "Capacity",
+    accessor: "capacity",
+    className: "hidden lg:table-cell",
+  },
+  {
+    header: "Enrolled",
+    accessor: "enrolledCount",
+    className: "hidden xl:table-cell",
+  },
+  {
     header: "Supervisor",
     accessor: "supervisor",
+    className: "hidden xl:table-cell",
+  },
+  {
+    header: "Status",
+    accessor: "isActive",
     className: "hidden md:table-cell",
   },
   {
@@ -72,20 +101,55 @@ const ClassListPage = () => {
       key={item.id}
       className="border-b border-gray-200 even:bg-slate-50 text-sm hover:bg-lamaPurpleLight"
     >
-      <td className="flex items-center gap-4 p-4">{item.name}</td>
-
-      <td className="hidden md:table-cell">
-        {item.capacity}
+      {/* SECTION */}
+      <td className="p-4 font-semibold">
+        {item.section || "-"}
       </td>
 
+      {/* GRADE */}
       <td className="hidden md:table-cell">
         {item.grade}
       </td>
 
+      {/* ACADEMIC YEAR */}
       <td className="hidden md:table-cell">
-        {item.supervisor}
+        {item.academicYear || "-"}
       </td>
 
+      {/* ROOM */}
+      <td className="hidden lg:table-cell">
+        {item.roomNo || "-"}
+      </td>
+
+      {/* CAPACITY */}
+      <td className="hidden lg:table-cell">
+        {item.capacity}
+      </td>
+
+      {/* ENROLLED */}
+      <td className="hidden xl:table-cell">
+        {item.enrolledCount ?? 0}
+      </td>
+
+      {/* SUPERVISOR */}
+      <td className="hidden xl:table-cell">
+        {item.supervisor || "-"}
+      </td>
+
+      {/* STATUS */}
+      <td className="hidden md:table-cell">
+        <span
+          className={
+            item.isActive
+              ? "text-green-600 font-medium"
+              : "text-red-500 font-medium"
+          }
+        >
+          {item.isActive ? "Active" : "Inactive"}
+        </span>
+      </td>
+
+      {/* ACTIONS */}
       <td>
         <div className="flex items-center gap-2">
           {role === "admin" && (
@@ -122,24 +186,33 @@ const ClassListPage = () => {
           <TableSearch />
 
           <div className="flex items-center gap-4 self-end">
-            <button className="w-8 h-8 flex items-center justify-center rounded-full bg-lamaYellow">
+            {/* FILTER */}
+            <button
+              type="button"
+              className="w-8 h-8 flex items-center justify-center rounded-full bg-lamaYellow"
+            >
               <Image
                 src="/filter.png"
-                alt=""
+                alt="Filter"
                 width={14}
                 height={14}
               />
             </button>
 
-            <button className="w-8 h-8 flex items-center justify-center rounded-full bg-lamaYellow">
+            {/* SORT */}
+            <button
+              type="button"
+              className="w-8 h-8 flex items-center justify-center rounded-full bg-lamaYellow"
+            >
               <Image
                 src="/sort.png"
-                alt=""
+                alt="Sort"
                 width={14}
                 height={14}
               />
             </button>
 
+            {/* CREATE */}
             {role === "admin" && (
               <FormModal
                 table="class"

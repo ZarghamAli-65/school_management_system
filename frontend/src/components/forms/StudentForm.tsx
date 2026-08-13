@@ -11,36 +11,58 @@ import { getClasses } from "@/lib/api/class.api";
 import { useState, useEffect } from "react";
 import { useNotification } from "@/components/NotificationProvider";
 
-// ------------------- Zod Schema -------------------
 const schema = z.object({
   // Authentication
   studentId: z.string().min(3, "Student ID must be at least 3 characters"),
   email: z.string().email("Invalid email address"),
-  password: z.string().min(8, "Password must be at least 8 characters").optional(),
+  password: z.string().optional(),
   username: z.string().optional(),
 
   // Personal
   firstName: z.string().min(1, "First name is required"),
   lastName: z.string().min(1, "Last name is required"),
-  phone: z.string().optional(),
-  address: z.string().optional(),
-  bloodType: z.string().optional(),
+  fatherName: z.string().min(1, "Father name is required"),
   gender: z.enum(["MALE", "FEMALE", "OTHER"]).optional(),
-  birthday: z.string().optional(),
+  dateOfBirth: z.string().optional(),
+  bloodType: z.string().optional(),
+  placeOfBirth: z.string().optional(),
+  nationality: z.string().optional(),
+  religion: z.string().optional(),
+  language: z.string().optional(),
+
+  // Contact
+  street: z.string().optional(),
+  city: z.string().optional(),
+  province: z.string().optional(),
+  postalCode: z.string().optional(),
+  country: z.string().optional(),
+  phone: z.string().optional(),
   photo: z.string().optional(),
 
-  // Academic
-  grade: z.coerce.number().min(1, "Grade 1-12").max(12),
-  classId: z.coerce.number().optional(),
+  // Emergency
+  emergencyContactName: z.string().optional(),
+  emergencyContactPhone: z.string().optional(),
+  emergencyContactRelation: z.string().optional(),
 
-  // Parent Relation
+  // Academic
+  classId: z.coerce.number().optional(),
+  section: z.string().optional(),
+  rollNumber: z.coerce.number().optional(),
+  academicYear: z.string().optional(),
+
+  // Enrollment
+  enrollmentDate: z.string().optional(),
+  admissionYear: z.coerce.number().optional(),
+  previousSchool: z.string().optional(),
+  status: z
+    .enum(["ACTIVE", "GRADUATED", "TRANSFERRED", "WITHDRAWN", "SUSPENDED"])
+    .optional(),
+
+  // Parent
   parentId: z.coerce.number().optional(),
   guardianRelation: z
     .enum(["FATHER", "MOTHER", "GUARDIAN", "OTHER"])
     .optional(),
-
-  // File upload
-  img: z.instanceof(File).optional(),
 });
 
 type Inputs = z.infer<typeof schema>;
@@ -51,10 +73,25 @@ type StudentFormProps = {
   onSuccess?: () => void;
 };
 
+type ClassOption = {
+  id: number;
+  grade: number;
+  section?: string | null;
+  academicYear?: string | null;
+  roomNo?: string | null;
+};
+
+type ParentOption = {
+  id: number;
+  firstName: string;
+  lastName: string;
+};
+
 const StudentForm = ({ type, data, onSuccess }: StudentFormProps) => {
   const [loading, setLoading] = useState(false);
-  const [classes, setClasses] = useState<{ id: number; name: string }[]>([]);
-  const [parents, setParents] = useState<{ id: number; name: string }[]>([]);
+  const [classes, setClasses] = useState<ClassOption[]>([]);
+  const [parents, setParents] = useState<ParentOption[]>([]);
+
   const { showNotification } = useNotification();
 
   useEffect(() => {
@@ -74,42 +111,87 @@ const StudentForm = ({ type, data, onSuccess }: StudentFormProps) => {
     formState: { errors },
   } = useForm<Inputs>({
     resolver: zodResolver(schema),
+
     defaultValues: {
       studentId: data?.studentId || "",
       email: data?.email || "",
       username: data?.username || "",
+      password: "",
 
       firstName: data?.firstName || "",
       lastName: data?.lastName || "",
-      phone: data?.phone || "",
-      address: data?.address || "",
+      fatherName: data?.fatherName || "",
+      gender: data?.gender || undefined,
+      dateOfBirth: data?.dateOfBirth
+        ? data.dateOfBirth.split("T")[0]
+        : "",
       bloodType: data?.bloodType || "",
-      gender: data?.gender || "",
-      birthday: data?.birthday ? data.birthday.split("T")[0] : "",
+      placeOfBirth: data?.placeOfBirth || "",
+      nationality: data?.nationality || "",
+      religion: data?.religion || "",
+      language: data?.language || "",
+
+      street: data?.street || "",
+      city: data?.city || "",
+      province: data?.province || "",
+      postalCode: data?.postalCode || "",
+      country: data?.country || "",
+      phone: data?.phone || "",
       photo: data?.photo || "",
 
-      grade: data?.grade || undefined,
-      classId: data?.classId || undefined,
+      emergencyContactName: data?.emergencyContactName || "",
+      emergencyContactPhone: data?.emergencyContactPhone || "",
+      emergencyContactRelation: data?.emergencyContactRelation || "",
 
-      parentId: data?.parentId || undefined,
+      classId:
+        data?.classId !== undefined
+          ? Number(data.classId)
+          : data?.class?.id !== undefined
+            ? Number(data.class.id)
+            : undefined,
+
+      section: data?.section || "",
+      rollNumber:
+        data?.rollNumber !== undefined
+          ? Number(data.rollNumber)
+          : undefined,
+      academicYear: data?.academicYear || "",
+
+      enrollmentDate: data?.enrollmentDate
+        ? data.enrollmentDate.split("T")[0]
+        : "",
+
+      admissionYear:
+        data?.admissionYear !== undefined
+          ? Number(data.admissionYear)
+          : undefined,
+
+      previousSchool: data?.previousSchool || "",
+      status: data?.status || "ACTIVE",
+
+      parentId:
+        data?.parentId !== undefined
+          ? Number(data.parentId)
+          : data?.parent?.id !== undefined
+            ? Number(data.parent.id)
+            : undefined,
+
       guardianRelation: data?.guardianRelation || undefined,
     },
   });
 
-  const handleFileChange = (
-    e: React.ChangeEvent<HTMLInputElement>
-  ) => {
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
 
-    if (file) {
-      const reader = new FileReader();
+    if (!file) return;
 
-      reader.onloadend = () => {
-        setValue("photo", reader.result as string);
-      };
+    const reader = new FileReader();
 
-      reader.readAsDataURL(file);
-    }
+    reader.onloadend = () => {
+      setValue("photo", reader.result as string);
+    };
+
+    reader.readAsDataURL(file);
   };
 
   const onSubmit = handleSubmit(async (formData) => {
@@ -121,73 +203,126 @@ const StudentForm = ({ type, data, onSuccess }: StudentFormProps) => {
         email: formData.email,
         firstName: formData.firstName,
         lastName: formData.lastName,
-        phone: formData.phone || "",
-        address: formData.address || "",
-        grade: formData.grade,
-        photo: formData.photo || "",
+        fatherName: formData.fatherName,
+
+        username: formData.username || undefined,
+
+        password:
+          type === "create"
+            ? formData.password || undefined
+            : undefined,
+
+        gender: formData.gender || undefined,
+
+        dateOfBirth: formData.dateOfBirth
+          ? new Date(formData.dateOfBirth).toISOString()
+          : undefined,
+
+        bloodType: formData.bloodType || undefined,
+        placeOfBirth: formData.placeOfBirth || undefined,
+        nationality: formData.nationality || undefined,
+        religion: formData.religion || undefined,
+        language: formData.language || undefined,
+
+        street: formData.street || undefined,
+        city: formData.city || undefined,
+        province: formData.province || undefined,
+        postalCode: formData.postalCode || undefined,
+        country: formData.country || undefined,
+        phone: formData.phone || undefined,
+        photo: formData.photo || undefined,
+
+        emergencyContactName:
+          formData.emergencyContactName || undefined,
+
+        emergencyContactPhone:
+          formData.emergencyContactPhone || undefined,
+
+        emergencyContactRelation:
+          formData.emergencyContactRelation || undefined,
+
+        classId:
+          formData.classId !== undefined &&
+          formData.classId !== 0
+            ? Number(formData.classId)
+            : undefined,
+
+        section: formData.section || undefined,
+
+        rollNumber:
+          formData.rollNumber !== undefined &&
+          formData.rollNumber !== 0
+            ? Number(formData.rollNumber)
+            : undefined,
+
+        academicYear: formData.academicYear || undefined,
+
+        enrollmentDate: formData.enrollmentDate
+          ? new Date(formData.enrollmentDate).toISOString()
+          : undefined,
+
+        admissionYear:
+          formData.admissionYear !== undefined &&
+          formData.admissionYear !== 0
+            ? Number(formData.admissionYear)
+            : undefined,
+
+        previousSchool: formData.previousSchool || undefined,
+
+        status: formData.status || undefined,
+
+        parentId:
+          formData.parentId !== undefined &&
+          formData.parentId !== 0
+            ? Number(formData.parentId)
+            : undefined,
+
+        guardianRelation:
+          formData.guardianRelation || undefined,
       };
-
-      if (formData.username) {
-        payload.username = formData.username;
-      }
-
-      if (formData.bloodType) {
-        payload.bloodType = formData.bloodType;
-      }
-
-      if (formData.gender) {
-        payload.gender = formData.gender;
-      }
-
-      if (formData.birthday) {
-        payload.birthday = new Date(formData.birthday).toISOString();
-      }
-
-      if (formData.classId) {
-        payload.classId = formData.classId;
-      }
-
-      if (formData.parentId) {
-        payload.parentId = formData.parentId;
-      }
-
-      if (formData.guardianRelation) {
-        payload.guardianRelation = formData.guardianRelation;
-      }
-
-      if (type === "create" && formData.password) {
-        payload.password = formData.password;
-      }
 
       if (type === "create") {
         await createStudent(payload);
-        showNotification("Student created successfully", "success");
+
+        showNotification(
+          "Student created successfully",
+          "success"
+        );
       } else {
         await updateStudent(data.id, payload);
-        showNotification("Student updated successfully", "success");
+
+        showNotification(
+          "Student updated successfully",
+          "success"
+        );
       }
 
       onSuccess?.();
-
     } catch (error: any) {
-      console.error("Full error:", error);
+      console.error("Student save error:", error);
 
       const message =
         error?.message ||
         `Failed to ${type} student. Please try again.`;
 
       showNotification(message, "error");
-
     } finally {
       setLoading(false);
     }
   });
-    return (
-    <form className="flex flex-col gap-8" onSubmit={onSubmit}>
+
+  return (
+    <form
+      onSubmit={onSubmit}
+      className="flex flex-col gap-6 max-h-[75vh] overflow-y-auto pr-3 scroll-smooth"
+    >
       <h1 className="text-xl font-semibold">
-        {type === "create" ? "Create a new student" : "Update student"}
+        {type === "create"
+          ? "Create a new student"
+          : "Update student"}
       </h1>
 
+      {/* Authentication */}
       <span className="text-xs text-gray-400 font-medium">
         Authentication Information
       </span>
@@ -196,7 +331,6 @@ const StudentForm = ({ type, data, onSuccess }: StudentFormProps) => {
         <InputField
           label="Student ID"
           name="studentId"
-          defaultValue={data?.studentId}
           register={register}
           error={errors.studentId}
         />
@@ -204,15 +338,13 @@ const StudentForm = ({ type, data, onSuccess }: StudentFormProps) => {
         <InputField
           label="Email"
           name="email"
-          defaultValue={data?.email}
           register={register}
           error={errors.email}
         />
 
         <InputField
-          label="Username (optional)"
+          label="Username"
           name="username"
-          defaultValue={data?.username}
           register={register}
           error={errors.username}
         />
@@ -228,6 +360,7 @@ const StudentForm = ({ type, data, onSuccess }: StudentFormProps) => {
         )}
       </div>
 
+      {/* Personal */}
       <span className="text-xs text-gray-400 font-medium">
         Personal Information
       </span>
@@ -236,7 +369,6 @@ const StudentForm = ({ type, data, onSuccess }: StudentFormProps) => {
         <InputField
           label="First Name"
           name="firstName"
-          defaultValue={data?.firstName}
           register={register}
           error={errors.firstName}
         />
@@ -244,162 +376,106 @@ const StudentForm = ({ type, data, onSuccess }: StudentFormProps) => {
         <InputField
           label="Last Name"
           name="lastName"
-          defaultValue={data?.lastName}
           register={register}
           error={errors.lastName}
         />
 
         <InputField
+          label="Father Name"
+          name="fatherName"
+          register={register}
+          error={errors.fatherName}
+        />
+
+        <InputField
           label="Phone"
           name="phone"
-          defaultValue={data?.phone}
           register={register}
           error={errors.phone}
         />
 
         <InputField
-          label="Address"
-          name="address"
-          defaultValue={data?.address}
-          register={register}
-          error={errors.address}
-        />
-
-        <InputField
           label="Blood Type"
           name="bloodType"
-          defaultValue={data?.bloodType}
           register={register}
           error={errors.bloodType}
         />
 
+        <InputField
+          label="Place of Birth"
+          name="placeOfBirth"
+          register={register}
+          error={errors.placeOfBirth}
+        />
+
+        <InputField
+          label="Nationality"
+          name="nationality"
+          register={register}
+          error={errors.nationality}
+        />
+
+        <InputField
+          label="Religion"
+          name="religion"
+          register={register}
+          error={errors.religion}
+        />
+
+        <InputField
+          label="Language"
+          name="language"
+          register={register}
+          error={errors.language}
+        />
+
         {/* Gender */}
-        <div className="flex flex-col gap-2 w-full md:w-1/4">
+        <div className="flex flex-col gap-2 w-full md:w-[30%]">
           <label className="text-xs text-gray-500">
             Gender
           </label>
 
           <select
-            className="ring-[1.5px] ring-gray-300 p-2 rounded-md text-sm w-full"
             {...register("gender")}
-            defaultValue={data?.gender || ""}
+            className="ring-[1.5px] ring-gray-300 p-2 rounded-md text-sm"
           >
             <option value="">Select gender</option>
             <option value="MALE">Male</option>
             <option value="FEMALE">Female</option>
             <option value="OTHER">Other</option>
           </select>
+
+          {errors.gender && (
+            <p className="text-xs text-red-400">
+              {errors.gender.message}
+            </p>
+          )}
         </div>
 
-        {/* Birthday */}
-        <div className="flex flex-col gap-2 w-full md:w-1/4">
+        {/* Date of Birth */}
+        <div className="flex flex-col gap-2 w-full md:w-[30%]">
           <label className="text-xs text-gray-500">
-            Birthday
+            Date of Birth
           </label>
 
           <input
             type="date"
-            className="ring-[1.5px] ring-gray-300 p-2 rounded-md text-sm w-full"
-            {...register("birthday")}
-            defaultValue={
-              data?.birthday
-                ? data.birthday.split("T")[0]
-                : ""
-            }
+            {...register("dateOfBirth")}
+            className="ring-[1.5px] ring-gray-300 p-2 rounded-md text-sm"
           />
-        </div>
 
-        <InputField
-          label="Grade"
-          name="grade"
-          type="number"
-          defaultValue={data?.grade}
-          register={register}
-          error={errors.grade}
-        />
-
-        {/* Class */}
-        <div className="flex flex-col gap-2 w-full md:w-1/4">
-          <label className="text-xs text-gray-500">
-            Class
-          </label>
-
-          <select
-            className="ring-[1.5px] ring-gray-300 p-2 rounded-md text-sm w-full"
-            {...register("classId")}
-            defaultValue={data?.classId || ""}
-          >
-            <option value="">None</option>
-
-            {classes.map((cls) => (
-              <option key={cls.id} value={cls.id}>
-                {cls.name}
-              </option>
-            ))}
-          </select>
-        </div>
-
-        {/* Guardian / Parent */}
-        <div className="flex flex-col gap-2 w-full md:w-1/4">
-          <label className="text-xs text-gray-500">
-            Guardian
-          </label>
-
-          <select
-            className="ring-[1.5px] ring-gray-300 p-2 rounded-md text-sm w-full"
-            {...register("parentId")}
-            defaultValue={data?.parentId || ""}
-          >
-            <option value="">
-              Select Guardian
-            </option>
-
-            {parents.map((parent) => (
-              <option key={parent.id} value={parent.id}>
-                {parent.name}
-              </option>
-            ))}
-          </select>
-        </div>
-
-        {/* Guardian Relation */}
-        <div className="flex flex-col gap-2 w-full md:w-1/4">
-          <label className="text-xs text-gray-500">
-            Guardian Relation
-          </label>
-
-          <select
-            className="ring-[1.5px] ring-gray-300 p-2 rounded-md text-sm w-full"
-            {...register("guardianRelation")}
-            defaultValue={data?.guardianRelation || ""}
-          >
-            <option value="">
-              Select Relation
-            </option>
-
-            <option value="FATHER">
-              Father
-            </option>
-
-            <option value="MOTHER">
-              Mother
-            </option>
-
-            <option value="GUARDIAN">
-              Guardian
-            </option>
-
-            <option value="OTHER">
-              Other
-            </option>
-          </select>
+          {errors.dateOfBirth && (
+            <p className="text-xs text-red-400">
+              {errors.dateOfBirth.message}
+            </p>
+          )}
         </div>
 
         {/* Photo */}
-        <div className="flex flex-col gap-2 w-full md:w-1/4 justify-center">
+        <div className="flex flex-col gap-2 w-full md:w-[30%] justify-center">
           <label
+            htmlFor="student-img"
             className="text-xs text-gray-500 flex items-center gap-2 cursor-pointer"
-            htmlFor="img"
           >
             <Image
               src="/upload.png"
@@ -408,14 +484,12 @@ const StudentForm = ({ type, data, onSuccess }: StudentFormProps) => {
               height={28}
             />
 
-            <span>
-              Upload a photo
-            </span>
+            <span>Upload a photo</span>
           </label>
 
           <input
+            id="student-img"
             type="file"
-            id="img"
             accept="image/*"
             onChange={handleFileChange}
             className="hidden"
@@ -423,16 +497,274 @@ const StudentForm = ({ type, data, onSuccess }: StudentFormProps) => {
         </div>
       </div>
 
+      {/* Contact */}
+      <span className="text-xs text-gray-400 font-medium">
+        Contact Information
+      </span>
+
+      <div className="flex justify-between flex-wrap gap-4">
+        <InputField
+          label="Street"
+          name="street"
+          register={register}
+          error={errors.street}
+        />
+
+        <InputField
+          label="City"
+          name="city"
+          register={register}
+          error={errors.city}
+        />
+
+        <InputField
+          label="Province"
+          name="province"
+          register={register}
+          error={errors.province}
+        />
+
+        <InputField
+          label="Postal Code"
+          name="postalCode"
+          register={register}
+          error={errors.postalCode}
+        />
+
+        <InputField
+          label="Country"
+          name="country"
+          register={register}
+          error={errors.country}
+        />
+      </div>
+
+      {/* Academic */}
+      <span className="text-xs text-gray-400 font-medium">
+        Academic Information
+      </span>
+
+      <div className="flex justify-between flex-wrap gap-4">
+        {/* Class Relation */}
+        <div className="flex flex-col gap-2 w-full md:w-[30%]">
+          <label className="text-xs text-gray-500">
+            Class
+          </label>
+
+          <select
+            {...register("classId")}
+            className="ring-[1.5px] ring-gray-300 p-2 rounded-md text-sm"
+          >
+            <option value="">None</option>
+
+            {classes.map((schoolClass) => (
+              <option
+                key={schoolClass.id}
+                value={schoolClass.id}
+              >
+                Grade {schoolClass.grade}
+                {schoolClass.section
+                  ? ` - Section ${schoolClass.section}`
+                  : ""}
+                {schoolClass.academicYear
+                  ? ` (${schoolClass.academicYear})`
+                  : ""}
+              </option>
+            ))}
+          </select>
+
+          {errors.classId && (
+            <p className="text-xs text-red-400">
+              {errors.classId.message}
+            </p>
+          )}
+        </div>
+
+        <InputField
+          label="Section"
+          name="section"
+          register={register}
+          error={errors.section}
+        />
+
+        <InputField
+          label="Roll Number"
+          name="rollNumber"
+          type="number"
+          register={register}
+          error={errors.rollNumber}
+        />
+
+        <InputField
+          label="Academic Year"
+          name="academicYear"
+          register={register}
+          error={errors.academicYear}
+        />
+      </div>
+
+      {/* Enrollment */}
+      <span className="text-xs text-gray-400 font-medium">
+        Enrollment Information
+      </span>
+
+      <div className="flex justify-between flex-wrap gap-4">
+        <div className="flex flex-col gap-2 w-full md:w-[30%]">
+          <label className="text-xs text-gray-500">
+            Enrollment Date
+          </label>
+
+          <input
+            type="date"
+            {...register("enrollmentDate")}
+            className="ring-[1.5px] ring-gray-300 p-2 rounded-md text-sm"
+          />
+
+          {errors.enrollmentDate && (
+            <p className="text-xs text-red-400">
+              {errors.enrollmentDate.message}
+            </p>
+          )}
+        </div>
+
+        <InputField
+          label="Admission Year"
+          name="admissionYear"
+          type="number"
+          register={register}
+          error={errors.admissionYear}
+        />
+
+        <InputField
+          label="Previous School"
+          name="previousSchool"
+          register={register}
+          error={errors.previousSchool}
+        />
+
+        {/* Status */}
+        <div className="flex flex-col gap-2 w-full md:w-[30%]">
+          <label className="text-xs text-gray-500">
+            Student Status
+          </label>
+
+          <select
+            {...register("status")}
+            className="ring-[1.5px] ring-gray-300 p-2 rounded-md text-sm"
+          >
+            <option value="ACTIVE">Active</option>
+            <option value="GRADUATED">Graduated</option>
+            <option value="TRANSFERRED">Transferred</option>
+            <option value="WITHDRAWN">Withdrawn</option>
+            <option value="SUSPENDED">Suspended</option>
+          </select>
+
+          {errors.status && (
+            <p className="text-xs text-red-400">
+              {errors.status.message}
+            </p>
+          )}
+        </div>
+      </div>
+
+      {/* Parent / Guardian */}
+      <span className="text-xs text-gray-400 font-medium">
+        Parent / Guardian Information
+      </span>
+
+      <div className="flex justify-between flex-wrap gap-4">
+        {/* Parent Relation */}
+        <div className="flex flex-col gap-2 w-full md:w-[30%]">
+          <label className="text-xs text-gray-500">
+            Parent / Guardian
+          </label>
+
+          <select
+            {...register("parentId")}
+            className="ring-[1.5px] ring-gray-300 p-2 rounded-md text-sm"
+          >
+            <option value="">Select Parent</option>
+
+            {parents.map((parent) => (
+              <option
+                key={parent.id}
+                value={parent.id}
+              >
+                {parent.firstName} {parent.lastName}
+              </option>
+            ))}
+          </select>
+
+          {errors.parentId && (
+            <p className="text-xs text-red-400">
+              {errors.parentId.message}
+            </p>
+          )}
+        </div>
+
+        {/* Guardian Relation */}
+        <div className="flex flex-col gap-2 w-full md:w-[30%]">
+          <label className="text-xs text-gray-500">
+            Guardian Relation
+          </label>
+
+          <select
+            {...register("guardianRelation")}
+            className="ring-[1.5px] ring-gray-300 p-2 rounded-md text-sm"
+          >
+            <option value="">Select Relation</option>
+            <option value="FATHER">Father</option>
+            <option value="MOTHER">Mother</option>
+            <option value="GUARDIAN">Guardian</option>
+            <option value="OTHER">Other</option>
+          </select>
+
+          {errors.guardianRelation && (
+            <p className="text-xs text-red-400">
+              {errors.guardianRelation.message}
+            </p>
+          )}
+        </div>
+      </div>
+
+      {/* Emergency Contact */}
+      <span className="text-xs text-gray-400 font-medium">
+        Emergency Contact
+      </span>
+
+      <div className="flex justify-between flex-wrap gap-4">
+        <InputField
+          label="Contact Name"
+          name="emergencyContactName"
+          register={register}
+          error={errors.emergencyContactName}
+        />
+
+        <InputField
+          label="Contact Phone"
+          name="emergencyContactPhone"
+          register={register}
+          error={errors.emergencyContactPhone}
+        />
+
+        <InputField
+          label="Relationship"
+          name="emergencyContactRelation"
+          register={register}
+          error={errors.emergencyContactRelation}
+        />
+      </div>
+
       <button
         type="submit"
         disabled={loading}
-        className="bg-blue-400 text-white p-2 rounded-md disabled:opacity-50"
+        className="bg-blue-400 text-white p-2 rounded-md disabled:opacity-50 sticky bottom-0"
       >
         {loading
           ? "Saving..."
           : type === "create"
-          ? "Create"
-          : "Update"}
+            ? "Create"
+            : "Update"}
       </button>
     </form>
   );

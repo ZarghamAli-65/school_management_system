@@ -57,7 +57,7 @@ model Teacher {
   // Relations
   assignments Assignment[]
   exams       Exam[]
-  lessons     Lesson[]
+  classSchedules ClassSchedule[]
   results     Result[]
   classes     TeacherClass[]
   subjects    TeacherSubject[]

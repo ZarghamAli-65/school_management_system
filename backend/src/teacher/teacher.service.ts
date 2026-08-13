@@ -11,17 +11,41 @@ import { UpdateTeacherDto } from './dto/update-teacher.dto';
 export class TeacherService {
   constructor(private prisma: PrismaService) {}
 
-  // Get all teachers
   async findAll() {
-    return this.prisma.teacher.findMany();
-  }
+  return this.prisma.teacher.findMany({
+    include: {
+      subjects: {
+        include: {
+          subject: true,
+        },
+      },
+      classes: {
+        include: {
+          class: true,
+        },
+      },
+    },
+  });
+}
 
-  // Get one teacher
-  async findOne(id: number) {
-    const teacher = await this.prisma.teacher.findUnique({
-      where: { id },
-    });
+async findOne(id: number) {
+  const teacher = await this.prisma.teacher.findUnique({
+    where: { id },
+    include: {
+      subjects: {
+        include: {
+          subject: true,
+        },
+      },
+      classes: {
+        include: {
+          class: true,
+        },
+      },
+    },
+  });
 
+  
     if (!teacher) {
       throw new NotFoundException(`Teacher with ID ${id} not found`);
     }
@@ -29,46 +53,117 @@ export class TeacherService {
     return teacher;
   }
 
-  // Create teacher
   async create(dto: CreateTeacherDto) {
-    return this.prisma.teacher.create({
-      data: {
-        ...dto,
-        birthday: new Date(dto.birthday),
-      },
-    });
+    try {
+      return await this.prisma.teacher.create({
+        data: {
+          teacherId: dto.teacherId,
+          employeeId: dto.employeeId,
+          email: dto.email,
+          username: dto.username,
+          password: dto.password,
+          firstName: dto.firstName,
+          lastName: dto.lastName,
+          fatherHusbandName: dto.fatherHusbandName,
+          photo: dto.photo,
+          phone: dto.phone,
+          alternatePhone: dto.alternatePhone,
+          address: dto.address,
+          city: dto.city,
+          state: dto.state,
+          country: dto.country,
+          postalCode: dto.postalCode,
+          dateOfBirth: dto.dateOfBirth
+            ? new Date(dto.dateOfBirth)
+            : undefined,
+          gender: dto.gender,
+          maritalStatus: dto.maritalStatus,
+          bloodType: dto.bloodType,
+          nationality: dto.nationality,
+          nationalId: dto.nationalId,
+          passportNo: dto.passportNo,
+          joiningDate: dto.joiningDate
+            ? new Date(dto.joiningDate)
+            : undefined,
+          employmentType: dto.employmentType,
+          employmentStatus: dto.employmentStatus,
+          designation: dto.designation,
+          latestQualification: dto.latestQualification,
+          specialization: dto.specialization,
+          experienceYears: dto.experienceYears,
+          experienceField: dto.experienceField,
+          bio: dto.bio,
+          emergencyContactName: dto.emergencyContactName,
+          emergencyContactPhone: dto.emergencyContactPhone,
+          emergencyContactRelation: dto.emergencyContactRelation,
+          isActive: dto.isActive,
+        },
+      });
+    } catch (error) {
+      throw new BadRequestException(
+        'Cannot create teacher. Please check the teacher details.',
+      );
+    }
   }
 
-  // Update teacher
   async update(id: number, dto: UpdateTeacherDto) {
-    const teacher = await this.prisma.teacher.findUnique({
-      where: { id },
-    });
+    await this.findOne(id);
 
-    if (!teacher) {
-      throw new NotFoundException('Teacher not found');
+    try {
+      return await this.prisma.teacher.update({
+        where: { id },
+        data: {
+          teacherId: dto.teacherId,
+          employeeId: dto.employeeId,
+          email: dto.email,
+          username: dto.username,
+          password: dto.password,
+          firstName: dto.firstName,
+          lastName: dto.lastName,
+          fatherHusbandName: dto.fatherHusbandName,
+          photo: dto.photo,
+          phone: dto.phone,
+          alternatePhone: dto.alternatePhone,
+          address: dto.address,
+          city: dto.city,
+          state: dto.state,
+          country: dto.country,
+          postalCode: dto.postalCode,
+          dateOfBirth: dto.dateOfBirth
+            ? new Date(dto.dateOfBirth)
+            : undefined,
+          gender: dto.gender,
+          maritalStatus: dto.maritalStatus,
+          bloodType: dto.bloodType,
+          nationality: dto.nationality,
+          nationalId: dto.nationalId,
+          passportNo: dto.passportNo,
+          joiningDate: dto.joiningDate
+            ? new Date(dto.joiningDate)
+            : undefined,
+          employmentType: dto.employmentType,
+          employmentStatus: dto.employmentStatus,
+          designation: dto.designation,
+          latestQualification: dto.latestQualification,
+          specialization: dto.specialization,
+          experienceYears: dto.experienceYears,
+          experienceField: dto.experienceField,
+          bio: dto.bio,
+          emergencyContactName: dto.emergencyContactName,
+          emergencyContactPhone: dto.emergencyContactPhone,
+          emergencyContactRelation: dto.emergencyContactRelation,
+          isActive: dto.isActive,
+        },
+      });
+    } catch (error) {
+      throw new BadRequestException(
+        'Cannot update teacher. Please check the teacher details.',
+      );
     }
-
-    return this.prisma.teacher.update({
-      where: { id },
-      data: {
-        ...dto,
-        ...(dto.birthday && {
-          birthday: new Date(dto.birthday),
-        }),
-      },
-    });
   }
 
-  // Delete teacher
   async remove(id: number) {
-    const teacher = await this.prisma.teacher.findUnique({
-      where: { id },
-    });
-
-    if (!teacher) {
-      throw new NotFoundException('Teacher not found');
-    }
+    await this.findOne(id);
 
     try {
       await this.prisma.teacher.delete({
@@ -80,7 +175,7 @@ export class TeacherService {
       };
     } catch (error) {
       throw new BadRequestException(
-        'Cannot delete teacher because it is assigned to one or more classes.',
+        'Cannot delete teacher because it is assigned to one or more records.',
       );
     }
   }

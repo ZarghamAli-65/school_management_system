@@ -6,22 +6,21 @@ import { z } from "zod";
 import { useEffect, useState } from "react";
 
 import { useNotification } from "@/components/NotificationProvider";
-import InputField from "../InputField";
 
 import {
   createLesson,
   updateLesson,
-} from "@/lib/api/lesson.api";
+} from "@/lib/api/classSchedule.api";
 
 import { getSubjects } from "@/lib/api/subject.api";
 import { getClasses } from "@/lib/api/class.api";
 import { getTeachers } from "@/lib/api/teacher.api";
 
-// ------------------- Zod Schema -------------------
-
 const schema = z.object({
   subjectId: z.coerce.number().min(1, "Subject is required"),
+
   classId: z.coerce.number().min(1, "Class is required"),
+
   teacherId: z.coerce.number().min(1, "Teacher is required"),
 
   day: z.enum([
@@ -34,22 +33,23 @@ const schema = z.object({
   ]),
 
   startTime: z.string().min(1, "Start time is required"),
+
   endTime: z.string().min(1, "End time is required"),
 });
 
 type Inputs = z.infer<typeof schema>;
 
-type LessonFormProps = {
+type ClassScheduleFormProps = {
   type: "create" | "update";
   data?: any;
   onSuccess?: () => void;
 };
 
-const LessonForm = ({
+const ClassScheduleForm = ({
   type,
   data,
   onSuccess,
-}: LessonFormProps) => {
+}: ClassScheduleFormProps) => {
   const [loading, setLoading] = useState(false);
 
   const [subjects, setSubjects] = useState<
@@ -70,29 +70,29 @@ const LessonForm = ({
 
   const { showNotification } = useNotification();
 
-  // ------------------- Load Relations -------------------
-
   useEffect(() => {
-    getSubjects()
-      .then((data) => setSubjects(data))
-      .catch((err) =>
-        console.error("Failed to load subjects:", err)
-      );
+    const loadRelations = async () => {
+      try {
+        const [subjectsData, classesData, teachersData] =
+          await Promise.all([
+            getSubjects(),
+            getClasses(),
+            getTeachers(),
+          ]);
 
-    getClasses()
-      .then((data) => setClasses(data))
-      .catch((err) =>
-        console.error("Failed to load classes:", err)
-      );
+        setSubjects(subjectsData);
+        setClasses(classesData);
+        setTeachers(teachersData);
+      } catch (error) {
+        console.error(
+          "Failed to load class schedule relations:",
+          error
+        );
+      }
+    };
 
-    getTeachers()
-      .then((data) => setTeachers(data))
-      .catch((err) =>
-        console.error("Failed to load teachers:", err)
-      );
+    loadRelations();
   }, []);
-
-  // ------------------- Form -------------------
 
   const {
     register,
@@ -103,33 +103,42 @@ const LessonForm = ({
 
     defaultValues: {
       subjectId: data?.subjectId || undefined,
+
       classId: data?.classId || undefined,
+
       teacherId: data?.teacherId || undefined,
 
       day: data?.day || undefined,
 
       startTime: data?.startTime
-        ? new Date(data.startTime).toTimeString().slice(0, 5)
+        ? new Date(data.startTime)
+            .toTimeString()
+            .slice(0, 5)
         : "",
 
       endTime: data?.endTime
-        ? new Date(data.endTime).toTimeString().slice(0, 5)
+        ? new Date(data.endTime)
+            .toTimeString()
+            .slice(0, 5)
         : "",
     },
   });
-
-  // ------------------- Submit -------------------
 
   const onSubmit = handleSubmit(async (formData) => {
     try {
       setLoading(true);
 
-      const today = new Date().toISOString().split("T")[0];
+      const today = new Date()
+        .toISOString()
+        .split("T")[0];
 
       const payload = {
         subjectId: formData.subjectId,
+
         classId: formData.classId,
+
         teacherId: formData.teacherId,
+
         day: formData.day,
 
         startTime: new Date(
@@ -145,33 +154,36 @@ const LessonForm = ({
         await createLesson(payload);
 
         showNotification(
-          "Lesson created successfully",
+          "Class schedule created successfully",
           "success"
         );
       } else {
         await updateLesson(data.id, payload);
 
         showNotification(
-          "Lesson updated successfully",
+          "Class schedule updated successfully",
           "success"
         );
       }
 
       onSuccess?.();
     } catch (error: any) {
-      console.error("Full error:", error);
+      console.error(
+        "Class schedule error:",
+        error
+      );
 
-      const message =
+      showNotification(
         error?.message ||
-        `Failed to ${type} lesson. Please try again.`;
-
-      showNotification(message, "error");
+          `Failed to ${
+            type === "create" ? "create" : "update"
+          } class schedule.`,
+        "error"
+      );
     } finally {
       setLoading(false);
     }
   });
-
-  // ------------------- UI -------------------
 
   return (
     <form
@@ -180,17 +192,17 @@ const LessonForm = ({
     >
       <h1 className="text-xl font-semibold">
         {type === "create"
-          ? "Create a new lesson"
-          : "Update lesson"}
+          ? "Create a new class schedule"
+          : "Update class schedule"}
       </h1>
 
       <span className="text-xs text-gray-400 font-medium">
-        Lesson Information
+        Class Schedule Information
       </span>
 
       <div className="flex justify-between flex-wrap gap-4">
-        {/* Subject */}
-        <div className="flex flex-col gap-2 w-full md:w-1/4">
+        {/* SUBJECT */}
+        <div className="flex flex-col gap-2 w-full md:w-[48%]">
           <label className="text-xs text-gray-500">
             Subject
           </label>
@@ -221,8 +233,8 @@ const LessonForm = ({
           )}
         </div>
 
-        {/* Class */}
-        <div className="flex flex-col gap-2 w-full md:w-1/4">
+        {/* CLASS */}
+        <div className="flex flex-col gap-2 w-full md:w-[48%]">
           <label className="text-xs text-gray-500">
             Class
           </label>
@@ -236,12 +248,12 @@ const LessonForm = ({
               Select Class
             </option>
 
-            {classes.map((cls) => (
+            {classes.map((item) => (
               <option
-                key={cls.id}
-                value={cls.id}
+                key={item.id}
+                value={item.id}
               >
-                {cls.name}
+                {item.name}
               </option>
             ))}
           </select>
@@ -253,8 +265,8 @@ const LessonForm = ({
           )}
         </div>
 
-        {/* Teacher */}
-        <div className="flex flex-col gap-2 w-full md:w-1/4">
+        {/* TEACHER */}
+        <div className="flex flex-col gap-2 w-full md:w-[48%]">
           <label className="text-xs text-gray-500">
             Teacher
           </label>
@@ -285,8 +297,8 @@ const LessonForm = ({
           )}
         </div>
 
-        {/* Day */}
-        <div className="flex flex-col gap-2 w-full md:w-1/4">
+        {/* DAY */}
+        <div className="flex flex-col gap-2 w-full md:w-[48%]">
           <label className="text-xs text-gray-500">
             Day
           </label>
@@ -305,9 +317,13 @@ const LessonForm = ({
             <option value="WEDNESDAY">
               Wednesday
             </option>
-            <option value="THURSDAY">Thursday</option>
+            <option value="THURSDAY">
+              Thursday
+            </option>
             <option value="FRIDAY">Friday</option>
-            <option value="SATURDAY">Saturday</option>
+            <option value="SATURDAY">
+              Saturday
+            </option>
           </select>
 
           {errors.day && (
@@ -317,8 +333,8 @@ const LessonForm = ({
           )}
         </div>
 
-        {/* Start Time */}
-        <div className="flex flex-col gap-2 w-full md:w-1/4">
+        {/* START TIME */}
+        <div className="flex flex-col gap-2 w-full md:w-[48%]">
           <label className="text-xs text-gray-500">
             Start Time
           </label>
@@ -343,8 +359,8 @@ const LessonForm = ({
           )}
         </div>
 
-        {/* End Time */}
-        <div className="flex flex-col gap-2 w-full md:w-1/4">
+        {/* END TIME */}
+        <div className="flex flex-col gap-2 w-full md:w-[48%]">
           <label className="text-xs text-gray-500">
             End Time
           </label>
@@ -385,4 +401,4 @@ const LessonForm = ({
   );
 };
 
-export default LessonForm;
+export default ClassScheduleForm;

@@ -23,20 +23,39 @@ const schema = z.object({
     .min(2, "Subject name must be at least 2 characters")
     .max(100, "Subject name must be less than 100 characters"),
 
+  shortName: z
+    .string()
+    .max(100, "Short name must be less than 100 characters")
+    .optional(),
+
   description: z
     .string()
     .max(500, "Description must be less than 500 characters")
     .optional(),
 
-  teacherIds: z.array(z.coerce.number()).optional(),
+  gradeLevel: z
+    .string()
+    .max(50, "Grade level must be less than 50 characters")
+    .optional(),
+
+  category: z
+    .string()
+    .max(100, "Category must be less than 100 characters")
+    .optional(),
+
+  teacherIds: z
+    .array(z.coerce.number())
+    .optional(),
 });
 
 type Inputs = z.infer<typeof schema>;
 
 type Teacher = {
   id: number;
+  teacherId?: string;
   firstName?: string;
   lastName?: string;
+  email?: string;
 };
 
 type SubjectFormProps = {
@@ -55,25 +74,38 @@ const SubjectForm = ({
 
   const { showNotification } = useNotification();
 
-  // Load teachers
+  // =========================
+  // Load Teachers
+  // =========================
+
   useEffect(() => {
     const fetchTeachers = async () => {
       try {
         const data = await getTeachers();
         setTeachers(data);
       } catch (error) {
-        console.error("Failed to load teachers:", error);
+        console.error(
+          "Failed to load teachers:",
+          error
+        );
       }
     };
 
     fetchTeachers();
   }, []);
 
-  // Existing assigned teacher IDs
+  // =========================
+  // Existing Teacher Relations
+  // =========================
+
   const existingTeacherIds =
     data?.teachers?.map(
       (item: any) => item.teacherId
     ) || [];
+
+  // =========================
+  // Form
+  // =========================
 
   const {
     register,
@@ -85,55 +117,88 @@ const SubjectForm = ({
     defaultValues: {
       code: data?.code || "",
       name: data?.name || "",
+      shortName: data?.shortName || "",
       description: data?.description || "",
+      gradeLevel: data?.gradeLevel || "",
+      category: data?.category || "",
       teacherIds: existingTeacherIds,
     },
   });
 
-  const onSubmit = handleSubmit(async (formData) => {
-    try {
-      setLoading(true);
+  // =========================
+  // Submit
+  // =========================
 
-      const payload = {
-        code: formData.code.trim(),
-        name: formData.name.trim(),
-        description: formData.description?.trim() || "",
-        teacherIds: formData.teacherIds || [],
-      };
+  const onSubmit = handleSubmit(
+    async (formData) => {
+      try {
+        setLoading(true);
 
-      if (type === "create") {
-        await createSubject(payload);
+        const payload = {
+          code: formData.code.trim(),
+
+          name: formData.name.trim(),
+
+          shortName:
+            formData.shortName?.trim() || undefined,
+
+          description:
+            formData.description?.trim() || undefined,
+
+          gradeLevel:
+            formData.gradeLevel?.trim() || undefined,
+
+          category:
+            formData.category?.trim() || undefined,
+
+          teacherIds:
+            formData.teacherIds || [],
+        };
+
+        if (type === "create") {
+          await createSubject(payload);
+
+          showNotification(
+            "Subject created successfully",
+            "success"
+          );
+        } else {
+          await updateSubject(
+            data.id,
+            payload
+          );
+
+          showNotification(
+            "Subject updated successfully",
+            "success"
+          );
+        }
+
+        onSuccess?.();
+      } catch (error: any) {
+        console.error(
+          "Error saving subject:",
+          error
+        );
 
         showNotification(
-          "Subject created successfully",
-          "success"
+          error?.message ||
+            `Failed to ${type} subject. Please try again.`,
+          "error"
         );
-      } else {
-        await updateSubject(data.id, payload);
-
-        showNotification(
-          "Subject updated successfully",
-          "success"
-        );
+      } finally {
+        setLoading(false);
       }
-
-      onSuccess?.();
-    } catch (error: any) {
-      console.error(error);
-
-      showNotification(
-        error?.message ||
-          `Failed to ${type} subject. Please try again.`,
-        "error"
-      );
-    } finally {
-      setLoading(false);
     }
-  });
+  );
+
+  // =========================
+  // UI
+  // =========================
 
   return (
     <form
-      className="flex flex-col gap-8"
+      className="flex flex-col gap-8 max-h-[80vh] overflow-y-auto pr-2"
       onSubmit={onSubmit}
     >
       <h1 className="text-xl font-semibold">
@@ -147,6 +212,7 @@ const SubjectForm = ({
       </span>
 
       <div className="flex flex-wrap justify-between gap-4">
+
         {/* Subject Code */}
         <InputField
           label="Subject Code"
@@ -165,17 +231,47 @@ const SubjectForm = ({
           error={errors.name}
         />
 
+        {/* Short Name */}
+        <InputField
+          label="Short Name"
+          name="shortName"
+          defaultValue={data?.shortName}
+          register={register}
+          error={errors.shortName}
+        />
+
+        {/* Grade Level */}
+        <InputField
+          label="Grade Level"
+          name="gradeLevel"
+          defaultValue={data?.gradeLevel}
+          register={register}
+          error={errors.gradeLevel}
+        />
+
+        {/* Category */}
+        <InputField
+          label="Category"
+          name="category"
+          defaultValue={data?.category}
+          register={register}
+          error={errors.category}
+        />
+
         {/* Teachers */}
         <div className="flex flex-col gap-2 w-full">
+
           <label className="text-xs text-gray-500">
             Teachers
           </label>
 
           <select
             multiple
-            className="ring-[1.5px] ring-gray-300 p-2 rounded-md text-sm w-full min-h-[120px]"
+            className="ring-[1.5px] ring-gray-300 p-2 rounded-md text-sm w-full min-h-[120px] outline-none"
             {...register("teacherIds")}
-            defaultValue={existingTeacherIds.map(String)}
+            defaultValue={existingTeacherIds.map(
+              String
+            )}
           >
             {teachers.map((teacher) => (
               <option
@@ -184,6 +280,9 @@ const SubjectForm = ({
               >
                 {teacher.firstName || ""}{" "}
                 {teacher.lastName || ""}
+                {teacher.teacherId
+                  ? ` (${teacher.teacherId})`
+                  : ""}
               </option>
             ))}
           </select>
@@ -201,6 +300,7 @@ const SubjectForm = ({
 
         {/* Description */}
         <div className="flex flex-col gap-2 w-full">
+
           <label className="text-xs text-gray-500">
             Description
           </label>
@@ -220,10 +320,11 @@ const SubjectForm = ({
         </div>
       </div>
 
+      {/* Submit */}
       <button
         type="submit"
         disabled={loading}
-        className="bg-blue-400 text-white p-2 rounded-md disabled:opacity-50"
+        className="bg-blue-400 text-white p-2 rounded-md disabled:opacity-50 sticky bottom-0"
       >
         {loading
           ? "Saving..."

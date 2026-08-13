@@ -5,11 +5,11 @@ import Pagination from "@/components/Pagination";
 import Table from "@/components/Table";
 import TableSearch from "@/components/TableSearch";
 import { role } from "@/lib/data";
-import { getLessons } from "@/lib/api";
+import { getLessons } from "@/lib/api/classSchedule.api";
 import Image from "next/image";
 import { useEffect, useState } from "react";
 
-type Lesson = {
+type ClassSchedule = {
   id: number;
 
   subjectId: number;
@@ -24,7 +24,8 @@ type Lesson = {
 
   class?: {
     id: number;
-    name: string;
+    grade: number;
+    section?: string;
   };
 
   teacher?: {
@@ -79,30 +80,36 @@ const columns = [
   },
 ];
 
-const LessonListPage = () => {
-  const [lessons, setLessons] = useState<Lesson[]>([]);
+const ClassScheduleListPage = () => {
+  const [classSchedules, setClassSchedules] = useState<
+    ClassSchedule[]
+  >([]);
+
   const [loading, setLoading] = useState(true);
 
-  const fetchLessons = async () => {
+  const fetchClassSchedules = async () => {
     try {
       setLoading(true);
 
       const data = await getLessons();
 
-      setLessons(data);
+      setClassSchedules(data);
     } catch (error) {
-      console.error("Failed to fetch lessons:", error);
+      console.error(
+        "Failed to fetch class schedules:",
+        error
+      );
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    fetchLessons();
+    fetchClassSchedules();
   }, []);
 
   const formatTime = (time: string) => {
-    if (!time) return "";
+    if (!time) return "-";
 
     return new Date(time).toLocaleTimeString([], {
       hour: "2-digit",
@@ -110,12 +117,12 @@ const LessonListPage = () => {
     });
   };
 
-  const renderRow = (item: Lesson) => (
+  const renderRow = (item: ClassSchedule) => (
     <tr
       key={item.id}
       className="border-b border-gray-200 even:bg-slate-50 text-sm hover:bg-lamaPurpleLight"
     >
-      {/* Subject */}
+      {/* SUBJECT */}
       <td className="p-4">
         <div className="flex flex-col">
           <h3 className="font-semibold">
@@ -130,12 +137,21 @@ const LessonListPage = () => {
         </div>
       </td>
 
-      {/* Class */}
+      {/* CLASS */}
       <td>
-        {item.class?.name || "N/A"}
+        {item.class ? (
+          <>
+            Grade {item.class.grade}
+            {item.class.section
+              ? ` - ${item.class.section}`
+              : ""}
+          </>
+        ) : (
+          "N/A"
+        )}
       </td>
 
-      {/* Teacher */}
+      {/* TEACHER */}
       <td>
         {item.teacher
           ? `${item.teacher.firstName || ""} ${
@@ -144,22 +160,22 @@ const LessonListPage = () => {
           : "N/A"}
       </td>
 
-      {/* Day */}
+      {/* DAY */}
       <td className="hidden md:table-cell">
         {item.day}
       </td>
 
-      {/* Start Time */}
+      {/* START TIME */}
       <td className="hidden lg:table-cell">
         {formatTime(item.startTime)}
       </td>
 
-      {/* End Time */}
+      {/* END TIME */}
       <td className="hidden lg:table-cell">
         {formatTime(item.endTime)}
       </td>
 
-      {/* Actions */}
+      {/* ACTIONS */}
       <td>
         <div className="flex items-center gap-2">
           {role === "admin" && (
@@ -168,14 +184,14 @@ const LessonListPage = () => {
                 table="lesson"
                 type="update"
                 data={item}
-                onSuccess={fetchLessons}
+                onSuccess={fetchClassSchedules}
               />
 
               <FormModal
                 table="lesson"
                 type="delete"
                 id={item.id}
-                onSuccess={fetchLessons}
+                onSuccess={fetchClassSchedules}
               />
             </>
           )}
@@ -189,15 +205,16 @@ const LessonListPage = () => {
       {/* TOP */}
       <div className="flex items-center justify-between">
         <h1 className="hidden md:block text-lg font-semibold">
-          All Lessons
+          All Class Schedules
         </h1>
 
         <div className="flex flex-col md:flex-row items-center gap-4 w-full md:w-auto">
           <TableSearch />
 
           <div className="flex items-center gap-4 self-end">
-            {/* Filter */}
+            {/* FILTER */}
             <button
+              type="button"
               title="Filter"
               className="w-8 h-8 flex items-center justify-center rounded-full bg-lamaYellow"
             >
@@ -209,8 +226,9 @@ const LessonListPage = () => {
               />
             </button>
 
-            {/* Sort */}
+            {/* SORT */}
             <button
+              type="button"
               title="Sort"
               className="w-8 h-8 flex items-center justify-center rounded-full bg-lamaYellow"
             >
@@ -222,12 +240,12 @@ const LessonListPage = () => {
               />
             </button>
 
-            {/* Add Lesson */}
+            {/* CREATE */}
             {role === "admin" && (
               <FormModal
                 table="lesson"
                 type="create"
-                onSuccess={fetchLessons}
+                onSuccess={fetchClassSchedules}
               />
             )}
           </div>
@@ -237,13 +255,13 @@ const LessonListPage = () => {
       {/* LIST */}
       {loading ? (
         <p className="p-4">
-          Loading lessons...
+          Loading class schedules...
         </p>
       ) : (
         <Table
           columns={columns}
           renderRow={renderRow}
-          data={lessons}
+          data={classSchedules}
         />
       )}
 
@@ -253,4 +271,4 @@ const LessonListPage = () => {
   );
 };
 
-export default LessonListPage;
+export default ClassScheduleListPage;

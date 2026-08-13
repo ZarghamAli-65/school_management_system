@@ -1,4 +1,5 @@
-// src/classes/classes.controller.ts
+// src/class/class.controller.ts
+
 import {
   Controller,
   Get,
@@ -9,16 +10,21 @@ import {
   Delete,
   ParseIntPipe,
 } from '@nestjs/common';
+
 import { ClassService } from './class.service';
 import { CreateClassDto } from './dto/create-class.dto';
 import { UpdateClassDto } from './dto/update-class.dto';
 
 @Controller('classes')
 export class ClassController {
-  constructor(private readonly classService: ClassService) {}
+  constructor(
+    private readonly classService: ClassService,
+  ) {}
 
   @Post()
-  create(@Body() createClassDto: CreateClassDto) {
+  create(
+    @Body() createClassDto: CreateClassDto,
+  ) {
     return this.classService.create(createClassDto);
   }
 
@@ -28,7 +34,9 @@ export class ClassController {
   }
 
   @Get(':id')
-  findOne(@Param('id', ParseIntPipe) id: number) {
+  findOne(
+    @Param('id', ParseIntPipe) id: number,
+  ) {
     return this.classService.findOne(id);
   }
 
@@ -37,11 +45,16 @@ export class ClassController {
     @Param('id', ParseIntPipe) id: number,
     @Body() updateClassDto: UpdateClassDto,
   ) {
-    return this.classService.update(id, updateClassDto);
+    return this.classService.update(
+      id,
+      updateClassDto,
+    );
   }
 
   @Delete(':id')
-  remove(@Param('id', ParseIntPipe) id: number) {
+  remove(
+    @Param('id', ParseIntPipe) id: number,
+  ) {
     return this.classService.remove(id);
   }
 }

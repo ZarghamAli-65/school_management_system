@@ -20,9 +20,25 @@ export class CreateSubjectDto {
 
   @IsOptional()
   @IsString()
+  @MaxLength(100)
+  shortName?: string;
+
+  @IsOptional()
+  @IsString()
   @MaxLength(500)
   description?: string;
 
+  @IsOptional()
+  @IsString()
+  @MaxLength(50)
+  gradeLevel?: string;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(100)
+  category?: string;
+
+  // TeacherSubject relation
   @IsOptional()
   @IsArray()
   @IsInt({ each: true })

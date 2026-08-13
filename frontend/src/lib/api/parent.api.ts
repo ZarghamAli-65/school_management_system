@@ -1,5 +1,40 @@
 import { API_URL, getAuthToken } from "./client";
 
+export type ParentGender = "MALE" | "FEMALE" | "OTHER";
+export type ParentMaritalStatus = "SINGLE" | "MARRIED";
+
+export interface ParentData {
+  username?: string;
+  email?: string;
+  password?: string;
+
+  firstName: string;
+  lastName: string;
+  photo?: string;
+
+  gender?: ParentGender;
+  dateOfBirth?: string;
+  bloodType?: string;
+  nationality?: string;
+  maritalStatus?: ParentMaritalStatus;
+
+  phone?: string;
+  alternatePhone?: string;
+  address?: string;
+  city?: string;
+  province?: string;
+  country?: string;
+  postalCode?: string;
+
+  cnic?: string;
+
+  qualification?: string;
+
+  occupation?: string;
+  employer?: string;
+  jobTitle?: string;
+}
+
 // Get all parents
 export async function getParents() {
   const token = getAuthToken();
@@ -45,6 +80,7 @@ export async function getParent(id: number) {
     if (res.status === 401) {
       throw new Error("401 - Unauthorized. Please login again.");
     }
+
     if (res.status === 404) {
       throw new Error(`Parent with ID ${id} not found`);
     }
@@ -56,18 +92,7 @@ export async function getParent(id: number) {
 }
 
 // Create a new parent
-export async function createParent(data: {
-  username: string;
-  email: string;
-  password: string;
-  firstName: string;
-  lastName: string;
-  phone?: string;
-  address?: string;
-  bloodType?: string;
-  gender?: "MALE" | "FEMALE" | "OTHER";
-  image?: string;
-}) {
+export async function createParent(data: ParentData) {
   const token = getAuthToken();
 
   const res = await fetch(`${API_URL}/parents`, {
@@ -81,12 +106,14 @@ export async function createParent(data: {
 
   if (!res.ok) {
     let errorText = await res.text();
+
     try {
       const json = JSON.parse(errorText);
       errorText = json.message || json.error || JSON.stringify(json);
     } catch {
-      // not JSON, keep raw text
+      // Keep raw text
     }
+
     throw new Error(`Server error (${res.status}): ${errorText}`);
   }
 
@@ -94,18 +121,10 @@ export async function createParent(data: {
 }
 
 // Update an existing parent
-export async function updateParent(id: number, data: {
-  username?: string;
-  email?: string;
-  password?: string;
-  firstName?: string;
-  lastName?: string;
-  phone?: string;
-  address?: string;
-  bloodType?: string;
-  gender?: "MALE" | "FEMALE" | "OTHER";
-  image?: string;
-}) {
+export async function updateParent(
+  id: number,
+  data: Partial<ParentData>,
+) {
   const token = getAuthToken();
 
   const res = await fetch(`${API_URL}/parents/${id}`, {
@@ -119,12 +138,14 @@ export async function updateParent(id: number, data: {
 
   if (!res.ok) {
     let errorText = await res.text();
+
     try {
       const json = JSON.parse(errorText);
       errorText = json.message || json.error || JSON.stringify(json);
     } catch {
-      // not JSON
+      // Keep raw text
     }
+
     throw new Error(`Server error (${res.status}): ${errorText}`);
   }
 

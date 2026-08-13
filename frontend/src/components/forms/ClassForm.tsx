@@ -13,10 +13,29 @@ import {
 } from "@/lib/api/class.api";
 
 const schema = z.object({
-  name: z.string().min(1, "Class name is required"),
-  capacity: z.coerce.number().min(1, "Capacity must be at least 1"),
-  grade: z.coerce.number().min(1).max(12),
-  supervisor: z.string().min(1, "Supervisor is required"),
+  section: z.string().optional(),
+
+  grade: z.coerce
+    .number()
+    .min(1, "Grade must be at least 1")
+    .max(12, "Grade cannot be greater than 12"),
+
+  academicYear: z.string().optional(),
+
+  roomNo: z.string().optional(),
+
+  capacity: z.coerce
+    .number()
+    .min(1, "Capacity must be at least 1"),
+
+  enrolledCount: z.coerce
+    .number()
+    .min(0, "Enrolled count cannot be negative")
+    .optional(),
+
+  supervisor: z.string().optional(),
+
+  isActive: z.boolean().optional(),
 });
 
 type Inputs = z.infer<typeof schema>;
@@ -42,11 +61,16 @@ const ClassForm = ({
     formState: { errors },
   } = useForm<Inputs>({
     resolver: zodResolver(schema),
+
     defaultValues: {
-      name: data?.name || "",
-      capacity: data?.capacity || undefined,
-      grade: data?.grade || undefined,
+      section: data?.section || "",
+      grade: data?.grade ?? undefined,
+      academicYear: data?.academicYear || "",
+      roomNo: data?.roomNo || "",
+      capacity: data?.capacity ?? undefined,
+      enrolledCount: data?.enrolledCount ?? undefined,
       supervisor: data?.supervisor || "",
+      isActive: data?.isActive ?? true,
     },
   });
 
@@ -55,10 +79,26 @@ const ClassForm = ({
       setLoading(true);
 
       const payload = {
-        name: formData.name,
-        capacity: formData.capacity,
+        section: formData.section || undefined,
+
         grade: formData.grade,
-        supervisor: formData.supervisor,
+
+        academicYear:
+          formData.academicYear || undefined,
+
+        roomNo:
+          formData.roomNo || undefined,
+
+        capacity: formData.capacity,
+
+        enrolledCount:
+          formData.enrolledCount ?? undefined,
+
+        supervisor:
+          formData.supervisor || undefined,
+
+        isActive:
+          formData.isActive ?? true,
       };
 
       if (type === "create") {
@@ -78,9 +118,11 @@ const ClassForm = ({
       }
 
       onSuccess?.();
-
     } catch (error: any) {
-      console.error(error);
+      console.error(
+        "Error saving class:",
+        error
+      );
 
       showNotification(
         error?.message ||
@@ -94,8 +136,8 @@ const ClassForm = ({
 
   return (
     <form
-      className="flex flex-col gap-8"
       onSubmit={onSubmit}
+      className="flex flex-col gap-8 max-h-[80vh] overflow-y-auto pr-2"
     >
       <h1 className="text-xl font-semibold">
         {type === "create"
@@ -108,22 +150,12 @@ const ClassForm = ({
       </span>
 
       <div className="flex justify-between flex-wrap gap-4">
-
         <InputField
-          label="Class Name"
-          name="name"
+          label="Section"
+          name="section"
           register={register}
-          defaultValue={data?.name}
-          error={errors.name}
-        />
-
-        <InputField
-          label="Capacity"
-          name="capacity"
-          type="number"
-          register={register}
-          defaultValue={data?.capacity?.toString()}
-          error={errors.capacity}
+          defaultValue={data?.section}
+          error={errors.section}
         />
 
         <InputField
@@ -136,6 +168,42 @@ const ClassForm = ({
         />
 
         <InputField
+          label="Academic Year"
+          name="academicYear"
+          register={register}
+          defaultValue={data?.academicYear}
+          error={errors.academicYear}
+        />
+
+        <InputField
+          label="Room No"
+          name="roomNo"
+          register={register}
+          defaultValue={data?.roomNo}
+          error={errors.roomNo}
+        />
+
+        <InputField
+          label="Capacity"
+          name="capacity"
+          type="number"
+          register={register}
+          defaultValue={data?.capacity?.toString()}
+          error={errors.capacity}
+        />
+
+        <InputField
+          label="Enrolled Count"
+          name="enrolledCount"
+          type="number"
+          register={register}
+          defaultValue={
+            data?.enrolledCount?.toString()
+          }
+          error={errors.enrolledCount}
+        />
+
+        <InputField
           label="Supervisor"
           name="supervisor"
           register={register}
@@ -143,6 +211,32 @@ const ClassForm = ({
           error={errors.supervisor}
         />
 
+        <div className="w-full md:w-[48%] flex flex-col gap-2">
+          <label className="text-xs text-gray-500">
+            Active Status
+          </label>
+
+          <label className="flex items-center gap-2 h-10">
+            <input
+              type="checkbox"
+              {...register("isActive")}
+              defaultChecked={
+                data?.isActive ?? true
+              }
+              className="w-4 h-4"
+            />
+
+            <span className="text-sm">
+              Active
+            </span>
+          </label>
+
+          {errors.isActive && (
+            <p className="text-xs text-red-400">
+              {errors.isActive.message}
+            </p>
+          )}
+        </div>
       </div>
 
       <button

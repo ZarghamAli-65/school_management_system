@@ -1,6 +1,6 @@
 import { deleteAnnouncement } from "./announcement.api";
 import { deleteClass } from "./class.api";
-import { deleteLesson } from "./lesson.api";
+import { deleteLesson } from "./classSchedule.api";
 import { deleteParent } from "./parent.api";
 import { deleteStudent } from "./student.api";
 import { deleteSubject } from "./subject.api";
@@ -47,7 +47,7 @@ export {
   createLesson,
   updateLesson,
   deleteLesson,
-} from "./lesson.api";
+} from "./classSchedule.api";
 
 export {
   getAnnouncements,

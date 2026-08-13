@@ -3,15 +3,7 @@ import {
   IsEnum,
   IsDateString,
 } from 'class-validator';
-
-enum Day {
-  MONDAY = 'MONDAY',
-  TUESDAY = 'TUESDAY',
-  WEDNESDAY = 'WEDNESDAY',
-  THURSDAY = 'THURSDAY',
-  FRIDAY = 'FRIDAY',
-  SATURDAY = 'SATURDAY',
-}
+import { Day } from '@prisma/client';
 
 export class CreateLessonDto {
   @IsInt()

@@ -1,4 +1,5 @@
 // src/class/class.service.ts
+
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateClassDto } from './dto/create-class.dto';
@@ -9,33 +10,18 @@ export class ClassService {
   constructor(private prisma: PrismaService) {}
 
   async create(createClassDto: CreateClassDto) {
-    const { studentIds, teacherIds, lessonIds, ...classData } = createClassDto;
-
     return this.prisma.class.create({
       data: {
-        ...classData,
-        // Direct relations (one-to-many)
-        students: studentIds
-          ? { connect: studentIds.map(id => ({ id })) }
-          : undefined,
-        lessons: lessonIds
-          ? { connect: lessonIds.map(id => ({ id })) }
-          : undefined,
-        // Junction relation (many-to-many via TeacherClass)
-        teachers: teacherIds
-          ? {
-              create: teacherIds.map(teacherId => ({
-                teacher: { connect: { id: teacherId } },
-              })),
-            }
-          : undefined,
+        ...createClassDto,
       },
       include: {
         students: true,
         teachers: {
-          include: { teacher: true },
+          include: {
+            teacher: true,
+          },
         },
-        lessons: true,
+        classSchedules: true,
         exams: true,
         assignments: true,
         results: true,
@@ -50,9 +36,11 @@ export class ClassService {
       include: {
         students: true,
         teachers: {
-          include: { teacher: true },
+          include: {
+            teacher: true,
+          },
         },
-        lessons: true,
+        classSchedules: true,
         exams: true,
         assignments: true,
         results: true,
@@ -68,9 +56,11 @@ export class ClassService {
       include: {
         students: true,
         teachers: {
-          include: { teacher: true },
+          include: {
+            teacher: true,
+          },
         },
-        lessons: true,
+        classSchedules: true,
         exams: true,
         assignments: true,
         results: true,
@@ -80,54 +70,42 @@ export class ClassService {
     });
 
     if (!classEntity) {
-      throw new NotFoundException(`Class with ID ${id} not found`);
+      throw new NotFoundException(
+        `Class with ID ${id} not found`,
+      );
     }
 
     return classEntity;
   }
 
   async update(id: number, updateClassDto: UpdateClassDto) {
-    const { studentIds, teacherIds, lessonIds, ...classData } = updateClassDto;
-
-    // Check if the class exists
     await this.findOne(id);
 
     return this.prisma.class.update({
       where: { id },
       data: {
-        ...classData,
-        // Direct relations – replace the entire list
-        students: studentIds
-          ? { set: studentIds.map(id => ({ id })) }
-          : undefined,
-        lessons: lessonIds
-          ? { set: lessonIds.map(id => ({ id })) }
-          : undefined,
-        // Junction relation – replace using the compound unique key
-        teachers: teacherIds
-          ? {
-              set: teacherIds.map(teacherId => ({
-                teacherId_classId: {
-                  teacherId: teacherId,
-                  classId: id,
-                },
-              })),
-            }
-          : undefined,
+        ...updateClassDto,
       },
       include: {
         students: true,
         teachers: {
-          include: { teacher: true },
+          include: {
+            teacher: true,
+          },
         },
-        lessons: true,
-        // Include other relations if needed
+        classSchedules: true,
+        exams: true,
+        assignments: true,
+        results: true,
+        events: true,
+        announcements: true,
       },
     });
   }
 
   async remove(id: number) {
     await this.findOne(id);
+
     return this.prisma.class.delete({
       where: { id },
     });
