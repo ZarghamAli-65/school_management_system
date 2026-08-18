@@ -1,62 +1,62 @@
 model Student {
-  id               Int               @id @default(autoincrement())
-  studentId        String            @unique
-  email            String            @unique
-  username         String?           @unique
-  password         String            
+  id        Int     @id @default(autoincrement())
+  studentId String  @unique
+  email     String  @unique
+  username  String? @unique
+  password  String
 
   // Personal
-  firstName        String
-  lastName         String
-  fatherName       String
-  gender           Gender?
-  dateOfBirth      DateTime?
-  bloodType        String?
-  placeOfBirth     String?
-  nationality      String?
-  religion         String?
-  language         String?
+  firstName    String
+  lastName     String
+  fatherName   String
+  gender       Gender?
+  dateOfBirth  DateTime?
+  bloodType    String?
+  placeOfBirth String?
+  nationality  String?
+  religion     String?
+  language     String?
 
   // Contact
-  street           String?
-  city             String?
-  province            String?
-  postalCode       String?
-  country          String?
-  phone            String?
-  photo            String?
+  street     String?
+  city       String?
+  province   String?
+  postalCode String?
+  country    String?
+  phone      String?
+  photo      String?
 
   // Emergency
   emergencyContactName     String?
   emergencyContactPhone    String?
   emergencyContactRelation String?
 
- 
-  guardianRelation  GuardianRelation?  
+  guardianRelation GuardianRelation?
 
   // Academic
-  classId         Int?                // relation to Class
-  class           Class?              @relation(fields: [classId], references: [id])
-  section         String?             // if not part of class model
-  rollNumber      Int?                // unique within class
-  academicYear    String?             // e.g., "2025-2026"
+  classId      Int? // relation to Class
+  class        Class?  @relation(fields: [classId], references: [id])
+  section      String? // if not part of class model
+  rollNumber   Int? // unique within class
+  academicYear String? // e.g., "2025-2026"
 
   // Enrollment
-  enrollmentDate  DateTime?
-  admissionYear   Int?
-  previousSchool  String?
-  status          StudentStatus?      @default(ACTIVE)
+  enrollmentDate DateTime?
+  admissionYear  Int?
+  previousSchool String?
+  status         StudentStatus? @default(ACTIVE)
 
   // Parent relation
-  parentId        Int?
-  parent          Parent?             @relation(fields: [parentId], references: [id])
+  parentId Int?
+  parent   Parent? @relation(fields: [parentId], references: [id])
 
   // System
-  deletedAt       DateTime?
-  lastLogin       DateTime?
+  deletedAt DateTime?
+  lastLogin DateTime?
 
-  results         Result[]
+  results    Result[]
+  attendance StudentAttendance[]
 
-  createdAt       DateTime            @default(now())
-  updatedAt       DateTime            @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }

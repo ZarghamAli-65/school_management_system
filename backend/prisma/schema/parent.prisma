@@ -7,15 +7,15 @@ model Parent {
   password String?
 
   // Personal Information
-  firstName  String
-  lastName   String
-  photo      String?
+  firstName String
+  lastName  String
+  photo     String?
 
-  gender         Gender?
-  dateOfBirth    DateTime?
-  bloodType      String?
-  nationality    String?
-  maritalStatus  MaritalStatus?
+  gender        Gender?
+  dateOfBirth   DateTime?
+  bloodType     String?
+  nationality   String?
+  maritalStatus MaritalStatus?
 
   // Contact Information
   phone          String?
@@ -27,20 +27,19 @@ model Parent {
   postalCode     String?
 
   // Identification
-  cnic       String? @unique
+  cnic String? @unique
 
   //Education
-  qualification   String?
-
+  qualification String?
 
   // Professional Information
-  occupation      String?
-  employer        String?
-  jobTitle        String?
+  occupation String?
+  employer   String?
+  jobTitle   String?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   // Relations
-  students   Student[]
+  students Student[]
 }

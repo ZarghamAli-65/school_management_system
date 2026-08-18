@@ -1,3 +1,10 @@
+enum Role {
+  ADMIN
+  TEACHER
+  STUDENT
+  PARENT
+}
+
 enum EmploymentType {
   FULL_TIME
   CONTRACT
@@ -17,8 +24,6 @@ enum MaritalStatus {
   MARRIED
 }
 
-
-
 enum StudentStatus {
   ACTIVE
   GRADUATED
@@ -26,8 +31,6 @@ enum StudentStatus {
   WITHDRAWN
   SUSPENDED
 }
-
-
 
 enum Gender {
   MALE
@@ -42,7 +45,6 @@ enum GuardianRelation {
   OTHER
 }
 
-
 enum Day {
   MONDAY
   TUESDAY
@@ -52,15 +54,12 @@ enum Day {
   SATURDAY
 }
 
-
-
 enum ExamStatus {
   DRAFT
   PUBLISHED
   COMPLETED
   CANCELLED
 }
-
 
 enum ExamType {
   QUIZ
@@ -74,11 +73,21 @@ enum ExamType {
   OTHER
 }
 
-
-
-
 enum ResultType {
   exam
   assignment
 }
 
+enum StudentAttendanceStatus {
+  PRESENT
+  ABSENT
+  LEAVE
+}
+
+enum TeacherAttendanceStatus {
+  PRESENT
+  ABSENT
+  LATE
+  HALF_DAY
+  LEAVE
+}

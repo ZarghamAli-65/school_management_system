@@ -1,35 +1,35 @@
 model Teacher {
-  id          Int      @id @default(autoincrement())
-  teacherId   String   @unique
-  employeeId  String?  @unique
+  id         Int     @id @default(autoincrement())
+  teacherId  String  @unique
+  employeeId String? @unique
 
   // Authentication / Account
-  email       String   @unique
-  username    String?  @unique
-  password    String?
+  email    String  @unique
+  username String? @unique
+  password String?
 
   // Personal Information
-  firstName      String?
-  lastName       String?
+  firstName         String?
+  lastName          String?
   fatherHusbandName String?
-  photo          String?
-  phone          String?
-  alternatePhone String?
-  address        String?
-  city           String?
-  state          String?
-  country        String?
-  postalCode     String?
+  photo             String?
+  phone             String?
+  alternatePhone    String?
+  address           String?
+  city              String?
+  state             String?
+  country           String?
+  postalCode        String?
 
-  dateOfBirth    DateTime?
-  gender         Gender?
-  maritalStatus  MaritalStatus?
-  bloodType      String?
-  nationality    String?
+  dateOfBirth   DateTime?
+  gender        Gender?
+  maritalStatus MaritalStatus?
+  bloodType     String?
+  nationality   String?
 
   // Identification
-  nationalId  String? @unique
-  passportNo  String? @unique
+  nationalId String? @unique
+  passportNo String? @unique
 
   // Employment
   joiningDate      DateTime?
@@ -39,10 +39,10 @@ model Teacher {
 
   // Professional
   latestQualification String?
-  specialization String?
-  experienceYears Int?
-  experienceField String?
-  bio             String?
+  specialization      String?
+  experienceYears     Int?
+  experienceField     String?
+  bio                 String?
 
   // Contact / Emergency
   emergencyContactName     String?
@@ -54,11 +54,16 @@ model Teacher {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
+  // User account relation
+  userId String? @unique
+  user   User?   @relation(fields: [userId], references: [id])
+
   // Relations
-  assignments Assignment[]
-  exams       Exam[]
+  assignments    Assignment[]
+  exams          Exam[]
   classSchedules ClassSchedule[]
-  results     Result[]
-  classes     TeacherClass[]
-  subjects    TeacherSubject[]
+  results        Result[]
+  classes        TeacherClass[]
+  subjects       TeacherSubject[]
+  attendance     TeacherAttendance[]
 }

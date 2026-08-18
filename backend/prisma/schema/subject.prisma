@@ -6,16 +6,16 @@ model Subject {
   shortName   String?
   description String?
 
-  gradeLevel   String?
-  category     String?
+  gradeLevel String?
+  category   String?
 
-  teachers    TeacherSubject[]
+  teachers       TeacherSubject[]
   classSchedules ClassSchedule[]
-  exams       Exam[]
-  assignments Assignment[]
-  results     Result[]
+  exams          Exam[]
+  assignments    Assignment[]
+  results        Result[]
 
-  deletedAt    DateTime?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  deletedAt DateTime?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
 }

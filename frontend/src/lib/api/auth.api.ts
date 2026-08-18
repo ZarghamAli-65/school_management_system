@@ -6,7 +6,7 @@ export interface LoginRequest {
 }
 
 export interface User {
-  id: number;
+  id: string;
   name: string;
   email: string;
   role: "ADMIN" | "TEACHER" | "STUDENT" | "PARENT";
@@ -34,17 +34,26 @@ export async function login(
     throw new Error(data.message || "Login failed");
   }
 
+  const { accessToken, user } = data;
+
+  // Store authentication data
+  localStorage.setItem("accessToken", accessToken);
+  localStorage.setItem("user", JSON.stringify(user));
+
+  // Middleware uses these cookies for route protection
+  document.cookie = `accessToken=${accessToken}; path=/;`;
+  document.cookie = `role=${user.role}; path=/;`;
+
   return data;
 }
 
-//logout funtion
+// Logout
 export async function logout() {
-  // Clear local storage
   localStorage.removeItem("accessToken");
   localStorage.removeItem("user");
-  // Clear cookies
+
   document.cookie = "accessToken=; path=/; max-age=0";
   document.cookie = "role=; path=/; max-age=0";
-  // Redirect to sign‑in (use router in a client component, or window.location)
+
   window.location.href = "/sign-in";
 }

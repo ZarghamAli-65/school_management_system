@@ -57,6 +57,13 @@ export {
   deleteAnnouncement,
 } from "./announcement.api";
 
+export {
+  markStudentAttendance,
+  markTeacherAttendance,
+  getStudentAttendance,
+  getTeacherAttendance,
+} from "./attendance.api";
+
 export async function deleteResource(table: string, id: number) {
   switch (table) {
     case "student":

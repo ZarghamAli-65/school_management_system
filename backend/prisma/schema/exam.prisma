@@ -1,4 +1,3 @@
-
 model Exam {
   id Int @id @default(autoincrement())
 

@@ -1,0 +1,20 @@
+model TeacherAttendance {
+  id Int @id @default(autoincrement())
+
+  teacherId Int
+  date      DateTime
+
+  status  TeacherAttendanceStatus
+  remarks String?
+
+  markedById String?
+
+  teacher  Teacher @relation(fields: [teacherId], references: [id])
+  markedBy User?   @relation(fields: [markedById], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([teacherId, date])
+  @@index([date])
+}
