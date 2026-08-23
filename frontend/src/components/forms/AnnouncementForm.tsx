@@ -11,25 +11,27 @@ import { getClasses } from "@/lib/api/class.api";
 import { useNotification } from "@/components/NotificationProvider";
 
 const schema = z.object({
-  title: z.string().min(1, "Title is required"),
+  // ===== Announcement Information =====
+  title: z
+    .string()
+    .trim()
+    .min(2, "Title must be at least 2 characters")
+    .max(150, "Title must not exceed 150 characters"),
 
-  description: z.string().min(1, "Description is required"),
+  description: z
+    .string()
+    .trim()
+    .min(5, "Description must be at least 5 characters")
+    .max(1000, "Description must not exceed 1000 characters"),
 
-  classId: z.preprocess(
-    (value) => {
-      if (value === "" || value === null || value === undefined) {
-        return null;
-      }
-
-      if (typeof value === "string") {
-        const numberValue = Number(value);
-        return Number.isNaN(numberValue) ? null : numberValue;
-      }
-
-      return value;
-    },
-    z.number().int().nullable(),
-  ),
+  // ===== Class =====
+  classId: z.coerce
+    .number({
+      required_error: "Class is required",
+      invalid_type_error: "Class ID must be a number",
+    })
+    .int("Class ID must be an integer")
+    .positive("Class ID must be a positive number"),
 });
 
 type Inputs = z.infer<typeof schema>;

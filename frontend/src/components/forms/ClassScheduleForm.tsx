@@ -16,26 +16,75 @@ import { getSubjects } from "@/lib/api/subject.api";
 import { getClasses } from "@/lib/api/class.api";
 import { getTeachers } from "@/lib/api/teacher.api";
 
-const schema = z.object({
-  subjectId: z.coerce.number().min(1, "Subject is required"),
+const schema = z
+  .object({
+    // ===== References =====
+    subjectId: z.coerce
+      .number({
+        required_error: "Subject is required",
+        invalid_type_error: "Subject ID must be a number",
+      })
+      .int("Subject ID must be an integer")
+      .positive("Subject ID must be a positive number"),
 
-  classId: z.coerce.number().min(1, "Class is required"),
+    classId: z.coerce
+      .number({
+        required_error: "Class is required",
+        invalid_type_error: "Class ID must be a number",
+      })
+      .int("Class ID must be an integer")
+      .positive("Class ID must be a positive number"),
 
-  teacherId: z.coerce.number().min(1, "Teacher is required"),
+    teacherId: z.coerce
+      .number({
+        required_error: "Teacher is required",
+        invalid_type_error: "Teacher ID must be a number",
+      })
+      .int("Teacher ID must be an integer")
+      .positive("Teacher ID must be a positive number"),
 
-  day: z.enum([
-    "MONDAY",
-    "TUESDAY",
-    "WEDNESDAY",
-    "THURSDAY",
-    "FRIDAY",
-    "SATURDAY",
-  ]),
+    // ===== Schedule =====
+    day: z.enum(
+      [
+        "MONDAY",
+        "TUESDAY",
+        "WEDNESDAY",
+        "THURSDAY",
+        "FRIDAY",
+        "SATURDAY",
+      ],
+      {
+        errorMap: () => ({
+          message: "Please select a valid day",
+        }),
+      }
+    ),
 
-  startTime: z.string().min(1, "Start time is required"),
+    startTime: z
+      .string()
+      .trim()
+      .min(1, "Start time is required")
+      .regex(
+        /^([01]\d|2[0-3]):[0-5]\d$/,
+        "Start time must be in HH:mm format"
+      ),
 
-  endTime: z.string().min(1, "End time is required"),
-});
+    endTime: z
+      .string()
+      .trim()
+      .min(1, "End time is required")
+      .regex(
+        /^([01]\d|2[0-3]):[0-5]\d$/,
+        "End time must be in HH:mm format"
+      ),
+  })
+  .refine(
+    (data) => data.startTime < data.endTime,
+    {
+      message: "End time must be after start time",
+      path: ["endTime"],
+    }
+  );
 
 type Inputs = z.infer<typeof schema>;
 

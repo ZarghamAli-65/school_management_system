@@ -13,19 +13,101 @@ import { getClasses } from "@/lib/api/class.api";
 import { getTeachers } from "@/lib/api/teacher.api";
 
 // ---------- Zod Schema with coercion ----------
-const schema = z.object({
-  title: z.string().min(1, "Title is required"),
-  description: z.string().optional(),
-  // Coerce to number for IDs
-  subjectId: z.coerce.number().min(1, "Please select a subject"),
-  classId: z.coerce.number().min(1, "Please select a class"),
-  teacherId: z.coerce.number().min(1, "Please select a teacher"),
-  examDate: z.string().min(1, "Exam date is required"),
-  durationMinutes: z.coerce.number().optional(),
-  totalMarks: z.coerce.number().min(1, "Total marks must be at least 1"),
-  passingMarks: z.coerce.number().min(0, "Passing marks must be 0 or more"),
-  status: z.enum(["DRAFT", "PUBLISHED", "COMPLETED", "CANCELLED"]).optional(),
-});
+const schema = z
+  .object({
+    // ===== Exam Information =====
+    title: z
+      .string()
+      .trim()
+      .min(2, "Exam title must be at least 2 characters")
+      .max(150, "Exam title must not exceed 150 characters"),
+
+    description: z
+      .string()
+      .trim()
+      .min(5, "Description must be at least 5 characters")
+      .max(500, "Description must not exceed 500 characters"),
+
+    // ===== References =====
+    subjectId: z.coerce
+      .number({
+        required_error: "Please select a subject",
+        invalid_type_error: "Subject ID must be a number",
+      })
+      .int("Subject ID must be an integer")
+      .positive("Subject ID must be a positive number"),
+
+    classId: z.coerce
+      .number({
+        required_error: "Please select a class",
+        invalid_type_error: "Class ID must be a number",
+      })
+      .int("Class ID must be an integer")
+      .positive("Class ID must be a positive number"),
+
+    teacherId: z.coerce
+      .number({
+        required_error: "Please select a teacher",
+        invalid_type_error: "Teacher ID must be a number",
+      })
+      .int("Teacher ID must be an integer")
+      .positive("Teacher ID must be a positive number"),
+
+    // ===== Exam Schedule =====
+    examDate: z
+      .string()
+      .trim()
+      .min(1, "Exam date is required")
+      .refine(
+        (value) => !Number.isNaN(Date.parse(value)),
+        "Exam date must be a valid date"
+      ),
+
+    durationMinutes: z.coerce
+      .number({
+        required_error: "Duration is required",
+        invalid_type_error: "Duration must be a number",
+      })
+      .int("Duration must be an integer")
+      .min(1, "Duration must be at least 1 minute")
+      .max(1440, "Duration cannot exceed 24 hours"),
+
+    // ===== Marks =====
+    totalMarks: z.coerce
+      .number({
+        required_error: "Total marks are required",
+        invalid_type_error: "Total marks must be a number",
+      })
+      .int("Total marks must be an integer")
+      .min(1, "Total marks must be at least 1")
+      .max(10000, "Total marks cannot exceed 10000"),
+
+    passingMarks: z.coerce
+      .number({
+        required_error: "Passing marks are required",
+        invalid_type_error: "Passing marks must be a number",
+      })
+      .int("Passing marks must be an integer")
+      .min(0, "Passing marks cannot be negative"),
+
+    // ===== Status =====
+    status: z.enum(
+      ["DRAFT", "PUBLISHED", "COMPLETED", "CANCELLED"],
+      {
+        errorMap: () => ({
+          message:
+            "Status must be DRAFT, PUBLISHED, COMPLETED, or CANCELLED",
+        }),
+      }
+    ),
+  })
+  .refine(
+    (data) => data.passingMarks <= data.totalMarks,
+    {
+      message: "Passing marks cannot be greater than total marks",
+      path: ["passingMarks"],
+    }
+  );
 
 type Inputs = z.infer<typeof schema>;
 

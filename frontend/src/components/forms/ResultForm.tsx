@@ -16,17 +16,105 @@ import { getExams } from "@/lib/api/exam.api";
 import { getAssignments } from "@/lib/api/assignment.api";
 
 // Zod schema expects lowercase enum values
-const schema = z.object({
-  studentId: z.coerce.number().min(1, "Select a student"),
-  subjectId: z.coerce.number().min(1, "Select a subject"),
-  classId: z.coerce.number().min(1, "Select a class"),
-  teacherId: z.coerce.number().min(1, "Select a teacher"),
-  type: z.enum(["exam", "assignment"]),
-  examId: z.coerce.number().optional(),
-  assignmentId: z.coerce.number().optional(),
-  obtainedMarks: z.coerce.number().min(0, "Marks must be 0 or more"),
-  remarks: z.string().optional(),
-});
+const schema = z
+  .object({
+    // ===== References =====
+    studentId: z.coerce
+      .number({
+        required_error: "Select a student",
+        invalid_type_error: "Student ID must be a number",
+      })
+      .int("Student ID must be an integer")
+      .positive("Student ID must be a positive number"),
+
+    subjectId: z.coerce
+      .number({
+        required_error: "Select a subject",
+        invalid_type_error: "Subject ID must be a number",
+      })
+      .int("Subject ID must be an integer")
+      .positive("Subject ID must be a positive number"),
+
+    classId: z.coerce
+      .number({
+        required_error: "Select a class",
+        invalid_type_error: "Class ID must be a number",
+      })
+      .int("Class ID must be an integer")
+      .positive("Class ID must be a positive number"),
+
+    teacherId: z.coerce
+      .number({
+        required_error: "Select a teacher",
+        invalid_type_error: "Teacher ID must be a number",
+      })
+      .int("Teacher ID must be an integer")
+      .positive("Teacher ID must be a positive number"),
+
+    // ===== Result Type =====
+    type: z.enum(["exam", "assignment"], {
+      errorMap: () => ({
+        message: "Result type must be exam or assignment",
+      }),
+    }),
+
+    // ===== Related Record =====
+    examId: z.coerce
+      .number()
+      .int("Exam ID must be an integer")
+      .positive("Exam ID must be a positive number")
+      .optional(),
+
+    assignmentId: z.coerce
+      .number()
+      .int("Assignment ID must be an integer")
+      .positive("Assignment ID must be a positive number")
+      .optional(),
+
+    // ===== Marks =====
+    obtainedMarks: z.coerce
+      .number({
+        required_error: "Obtained marks are required",
+        invalid_type_error: "Obtained marks must be a number",
+      })
+      .int("Obtained marks must be an integer")
+      .min(0, "Marks must be 0 or more"),
+
+    // ===== Remarks =====
+    remarks: z
+      .string()
+      .trim()
+      .min(2, "Remarks must be at least 2 characters")
+      .max(500, "Remarks must not exceed 500 characters"),
+  })
+  .superRefine((data, ctx) => {
+    // Exam result must have examId
+    if (data.type === "exam" && !data.examId) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "Exam is required for an exam result",
+        path: ["examId"],
+      });
+    }
+
+    // Assignment result must have assignmentId
+    if (data.type === "assignment" && !data.assignmentId) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "Assignment is required for an assignment result",
+        path: ["assignmentId"],
+      });
+    }
+
+    // Prevent both from being selected
+    if (data.examId && data.assignmentId) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "Select either an exam or an assignment, not both",
+        path: ["examId"],
+      });
+    }
+  });
 
 type Inputs = z.infer<typeof schema>;
 

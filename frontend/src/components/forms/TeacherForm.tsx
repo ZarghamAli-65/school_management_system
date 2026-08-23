@@ -10,75 +10,267 @@ import { useState } from "react";
 import { useNotification } from "@/components/NotificationProvider";
 
 const schema = z.object({
-  teacherId: z.string().min(3, "Teacher ID must be at least 3 characters"),
-  employeeId: z.string().optional(),
-  email: z.string().email("Invalid email address"),
+  // ===== Authentication =====
+  teacherId: z
+    .string()
+    .trim()
+    .min(3, "Teacher ID must be at least 3 characters")
+    .max(30, "Teacher ID must not exceed 30 characters"),
+
+  employeeId: z
+    .string()
+    .trim()
+    .min(1, "Employee ID is required")
+    .max(30, "Employee ID must not exceed 30 characters"),
+
+  email: z
+    .string()
+    .trim()
+    .email("Invalid email address")
+    .max(150, "Email must not exceed 150 characters"),
+
   username: z
     .string()
+    .trim()
     .min(3, "Username must be at least 3 characters")
+    .max(50, "Username must not exceed 50 characters")
+    .regex(
+      /^[a-zA-Z0-9_]+$/,
+      "Username can only contain letters, numbers, and underscores"
+    ),
+
+  password: z
+    .string()
+    .min(8, "Password must be at least 8 characters")
+    .max(100, "Password must not exceed 100 characters"),
+
+  // ===== Personal Information =====
+  firstName: z
+    .string()
+    .trim()
+    .min(2, "First name must be at least 2 characters")
+    .max(50, "First name must not exceed 50 characters"),
+
+  lastName: z
+    .string()
+    .trim()
+    .min(2, "Last name must be at least 2 characters")
+    .max(50, "Last name must not exceed 50 characters"),
+
+  fatherHusbandName: z
+    .string()
+    .trim()
+    .min(2, "Father / Husband name must be at least 2 characters")
+    .max(100, "Father / Husband name must not exceed 100 characters"),
+
+  photo: z
+    .string()
+    .trim()
+    .min(1, "Photo is required")
     .optional(),
-  password: z.string().optional(),
 
-  firstName: z.string().optional(),
-  lastName: z.string().optional(),
-  fatherHusbandName: z.string().optional(),
-  photo: z.string().optional(),
+  phone: z
+    .string()
+    .trim()
+    .min(7, "Phone number must be at least 7 digits")
+    .max(15, "Phone number must not exceed 15 digits")
+    .regex(
+      /^[0-9]+$/,
+      "Phone must contain numbers only"
+    ),
 
-  phone: z.string().optional(),
-  alternatePhone: z.string().optional(),
-  address: z.string().optional(),
-  city: z.string().optional(),
-  state: z.string().optional(),
-  country: z.string().optional(),
-  postalCode: z.string().optional(),
-
-  dateOfBirth: z.string().optional(),
-  gender: z.enum(["MALE", "FEMALE", "OTHER"]).optional(),
-  maritalStatus: z.enum(["SINGLE", "MARRIED"]).optional(),
-  bloodType: z.string().optional(),
-  nationality: z.string().optional(),
-
-  nationalId: z.string().optional(),
-  passportNo: z.string().optional(),
-
-  joiningDate: z.string().optional(),
-
-  employmentType: z.enum(["FULL_TIME", "CONTRACT", "INTERN"]).optional(),
-
-  employmentStatus: z
-    .enum(["ACTIVE", "ON_LEAVE", "RESIGNED", "TERMINATED", "RETIRED"])
+  alternatePhone: z
+    .string()
+    .trim()
+    .min(7, "Alternate phone must be at least 7 digits")
+    .max(15, "Alternate phone must not exceed 15 digits")
+    .regex(
+      /^[0-9]+$/,
+      "Alternate phone must contain numbers only"
+    )
     .optional(),
 
-  designation: z.string().optional(),
+  address: z
+    .string()
+    .trim()
+    .min(5, "Address must be at least 5 characters")
+    .max(200, "Address must not exceed 200 characters"),
 
-  latestQualification: z.string().optional(),
-  specialization: z.string().optional(),
+  city: z
+    .string()
+    .trim()
+    .min(2, "City must be at least 2 characters")
+    .max(100, "City must not exceed 100 characters"),
 
-  experienceYears: z.preprocess(
-    (value) => {
-      if (value === "" || value === undefined || value === null) {
-        return undefined;
-      }
+  state: z
+    .string()
+    .trim()
+    .min(2, "State must be at least 2 characters")
+    .max(100, "State must not exceed 100 characters"),
 
-      const numberValue = Number(value);
+  country: z
+    .string()
+    .trim()
+    .min(2, "Country must be at least 2 characters")
+    .max(100, "Country must not exceed 100 characters"),
 
-      return Number.isNaN(numberValue) ? undefined : numberValue;
-    },
-    z
-      .number()
-      .int()
-      .min(0, "Experience cannot be negative")
-      .optional()
+  postalCode: z
+    .string()
+    .trim()
+    .min(3, "Postal code must be at least 3 characters")
+    .max(10, "Postal code must not exceed 10 characters")
+    .regex(
+      /^[0-9]+$/,
+      "Postal code must contain numbers only"
+    ),
+
+  dateOfBirth: z
+    .string()
+    .trim()
+    .min(1, "Date of birth is required"),
+
+  gender: z.enum(["MALE", "FEMALE", "OTHER"], {
+    errorMap: () => ({
+      message: "Gender must be MALE, FEMALE, or OTHER",
+    }),
+  }),
+
+  maritalStatus: z.enum(["SINGLE", "MARRIED"], {
+    errorMap: () => ({
+      message: "Marital status must be SINGLE or MARRIED",
+    }),
+  }),
+
+  bloodType: z
+    .string()
+    .trim()
+    .min(1, "Blood type is required")
+    .max(5, "Blood type must not exceed 5 characters"),
+
+  nationality: z
+    .string()
+    .trim()
+    .min(2, "Nationality must be at least 2 characters")
+    .max(50, "Nationality must not exceed 50 characters"),
+
+  // ===== Identification =====
+  nationalId: z
+    .string()
+    .trim()
+    .min(5, "National ID is required")
+    .max(30, "National ID must not exceed 30 characters")
+    .regex(
+      /^[0-9-]+$/,
+      "National ID can contain numbers and dash (-) only"
+    ),
+
+  passportNo: z
+    .string()
+    .trim()
+    .min(5, "Passport number must be at least 5 characters")
+    .max(20, "Passport number must not exceed 20 characters")
+    .optional(),
+
+  // ===== Employment =====
+  joiningDate: z
+    .string()
+    .trim()
+    .min(1, "Joining date is required"),
+
+  employmentType: z.enum(
+    ["FULL_TIME", "CONTRACT", "INTERN"],
+    {
+      errorMap: () => ({
+        message:
+          "Employment type must be FULL_TIME, CONTRACT, or INTERN",
+      }),
+    }
   ),
 
-  experienceField: z.string().optional(),
-  bio: z.string().optional(),
+  employmentStatus: z.enum(
+    [
+      "ACTIVE",
+      "ON_LEAVE",
+      "RESIGNED",
+      "TERMINATED",
+      "RETIRED",
+    ],
+    {
+      errorMap: () => ({
+        message:
+          "Employment status must be ACTIVE, ON_LEAVE, RESIGNED, TERMINATED, or RETIRED",
+      }),
+    }
+  ),
 
-  emergencyContactName: z.string().optional(),
-  emergencyContactPhone: z.string().optional(),
-  emergencyContactRelation: z.string().optional(),
+  designation: z
+    .string()
+    .trim()
+    .min(2, "Designation must be at least 2 characters")
+    .max(100, "Designation must not exceed 100 characters"),
 
-  isActive: z.boolean().optional(),
+  // ===== Professional =====
+  latestQualification: z
+    .string()
+    .trim()
+    .min(2, "Latest qualification must be at least 2 characters")
+    .max(150, "Latest qualification must not exceed 150 characters"),
+
+  specialization: z
+    .string()
+    .trim()
+    .min(2, "Specialization must be at least 2 characters")
+    .max(150, "Specialization must not exceed 150 characters"),
+
+  experienceYears: z.coerce
+    .number({
+      required_error: "Experience years is required",
+      invalid_type_error: "Experience years must be a number",
+    })
+    .int("Experience years must be an integer")
+    .min(0, "Experience cannot be negative")
+    .max(60, "Experience years cannot exceed 60"),
+
+  experienceField: z
+    .string()
+    .trim()
+    .min(2, "Experience field must be at least 2 characters")
+    .max(150, "Experience field must not exceed 150 characters"),
+
+  bio: z
+    .string()
+    .trim()
+    .min(10, "Bio must be at least 10 characters")
+    .max(1000, "Bio must not exceed 1000 characters")
+    .optional(),
+
+  // ===== Emergency Contact =====
+  emergencyContactName: z
+    .string()
+    .trim()
+    .min(2, "Emergency contact name must be at least 2 characters")
+    .max(100, "Emergency contact name must not exceed 100 characters"),
+
+  emergencyContactPhone: z
+    .string()
+    .trim()
+    .min(7, "Emergency contact phone must be at least 7 digits")
+    .max(15, "Emergency contact phone must not exceed 15 digits")
+    .regex(
+      /^[0-9]+$/,
+      "Emergency contact phone must contain numbers only"
+    ),
+
+  emergencyContactRelation: z
+    .string()
+    .trim()
+    .min(2, "Emergency contact relationship must be at least 2 characters")
+    .max(50, "Emergency contact relationship must not exceed 50 characters"),
+
+  isActive: z.boolean({
+    required_error: "Active status is required",
+    invalid_type_error: "Active status must be true or false",
+  }),
 });
 
 type Inputs = z.infer<typeof schema>;
