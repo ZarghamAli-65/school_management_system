@@ -10,68 +10,165 @@ import { useState } from "react";
 import { useNotification } from "@/components/NotificationProvider";
 
 const schema = z.object({
+  // ===== Authentication =====
   username: z
     .string()
+    .trim()
     .min(3, "Username must be at least 3 characters")
-    .max(20, "Username must be at most 20 characters")
-    .optional()
-    .or(z.literal("")),
+    .max(20, "Username must not exceed 20 characters")
+    .regex(
+      /^[a-zA-Z0-9_]+$/,
+      "Username can only contain letters, numbers, and underscores"
+    ),
 
   email: z
     .string()
+    .trim()
     .email("Invalid email address")
-    .optional()
-    .or(z.literal("")),
+    .max(150, "Email must not exceed 150 characters"),
 
   password: z
     .string()
     .min(8, "Password must be at least 8 characters")
-    .optional()
-    .or(z.literal("")),
+    .max(100, "Password must not exceed 100 characters"),
 
-  firstName: z.string().min(1, "First name is required"),
+  // ===== Personal Information =====
+  firstName: z
+    .string()
+    .trim()
+    .min(2, "First name must be at least 2 characters")
+    .max(50, "First name must not exceed 50 characters"),
 
-  lastName: z.string().min(1, "Last name is required"),
+  lastName: z
+    .string()
+    .trim()
+    .min(2, "Last name must be at least 2 characters")
+    .max(50, "Last name must not exceed 50 characters"),
 
-  photo: z.string().optional(),
+  photo: z
+    .string()
+    .trim()
+    .min(1, "Photo is required"),
 
-  gender: z
-    .enum(["MALE", "FEMALE", "OTHER"])
+  gender: z.enum(["MALE", "FEMALE", "OTHER"], {
+    errorMap: () => ({
+      message: "Gender must be MALE, FEMALE, or OTHER",
+    }),
+  }),
+
+  dateOfBirth: z
+    .string()
+    .trim()
+    .min(1, "Date of birth is required"),
+
+  bloodType: z
+    .string()
+    .trim()
+    .min(1, "Blood type is required")
+    .max(5, "Blood type must not exceed 5 characters"),
+
+  nationality: z
+    .string()
+    .trim()
+    .min(2, "Nationality must be at least 2 characters")
+    .max(50, "Nationality must not exceed 50 characters"),
+
+  maritalStatus: z.enum(["SINGLE", "MARRIED"], {
+    errorMap: () => ({
+      message: "Marital status must be SINGLE or MARRIED",
+    }),
+  }),
+
+  // ===== Contact Information =====
+  phone: z
+    .string()
+    .trim()
+    .min(7, "Phone number must be at least 7 digits")
+    .max(15, "Phone number must not exceed 15 digits")
+    .regex(
+      /^[0-9]+$/,
+      "Phone must contain numbers only"
+    ),
+
+  alternatePhone: z
+    .string()
+    .trim()
+    .min(7, "Alternate phone must be at least 7 digits")
+    .max(15, "Alternate phone must not exceed 15 digits")
+    .regex(
+      /^[0-9]+$/,
+      "Alternate phone must contain numbers only"
+    )
     .optional(),
 
-  dateOfBirth: z.string().optional(),
+  address: z
+    .string()
+    .trim()
+    .min(5, "Address must be at least 5 characters")
+    .max(200, "Address must not exceed 200 characters"),
 
-  bloodType: z.string().optional(),
+  city: z
+    .string()
+    .trim()
+    .min(2, "City must be at least 2 characters")
+    .max(100, "City must not exceed 100 characters"),
 
-  nationality: z.string().optional(),
+  province: z
+    .string()
+    .trim()
+    .min(2, "Province must be at least 2 characters")
+    .max(100, "Province must not exceed 100 characters"),
 
-  maritalStatus: z
-    .enum(["SINGLE", "MARRIED"])
-    .optional(),
+  country: z
+    .string()
+    .trim()
+    .min(2, "Country must be at least 2 characters")
+    .max(100, "Country must not exceed 100 characters"),
 
-  phone: z.string().optional(),
+  postalCode: z
+    .string()
+    .trim()
+    .min(3, "Postal code must be at least 3 characters")
+    .max(10, "Postal code must not exceed 10 characters")
+    .regex(
+      /^[0-9]+$/,
+      "Postal code must contain numbers only"
+    ),
 
-  alternatePhone: z.string().optional(),
+  cnic: z
+    .string()
+    .trim()
+    .min(13, "CNIC must be 13 digits")
+    .max(15, "CNIC must not exceed 15 characters")
+    .regex(
+      /^[0-9-]+$/,
+      "CNIC can contain numbers and dashes only"
+    ),
 
-  address: z.string().optional(),
+  // ===== Professional Information =====
+  qualification: z
+    .string()
+    .trim()
+    .min(2, "Qualification must be at least 2 characters")
+    .max(150, "Qualification must not exceed 150 characters"),
 
-  city: z.string().optional(),
+  occupation: z
+    .string()
+    .trim()
+    .min(2, "Occupation must be at least 2 characters")
+    .max(100, "Occupation must not exceed 100 characters"),
 
-  province: z.string().optional(),
+  employer: z
+    .string()
+    .trim()
+    .min(2, "Employer must be at least 2 characters")
+    .max(150, "Employer must not exceed 150 characters"),
 
-  country: z.string().optional(),
-
-  postalCode: z.string().optional(),
-
-  cnic: z.string().optional(),
-
-  qualification: z.string().optional(),
-
-  occupation: z.string().optional(),
-
-  employer: z.string().optional(),
-
-  jobTitle: z.string().optional(),
+  jobTitle: z
+    .string()
+    .trim()
+    .min(2, "Job title must be at least 2 characters")
+    .max(100, "Job title must not exceed 100 characters"),
 });
 
 type Inputs = z.infer<typeof schema>;

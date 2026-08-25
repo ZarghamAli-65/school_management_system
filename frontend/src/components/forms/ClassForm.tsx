@@ -12,31 +12,62 @@ import {
   updateClass,
 } from "@/lib/api/class.api";
 
-const schema = z.object({
-  section: z.string().optional(),
+const schema = z
+  .object({
+    section: z
+      .string()
+      .trim()
+      .min(1, "Section is required")
+      .max(20, "Section must not exceed 20 characters"),
 
-  grade: z.coerce
-    .number()
-    .min(1, "Grade must be at least 1")
-    .max(12, "Grade cannot be greater than 12"),
+    grade: z.coerce
+      .number()
+      .int("Grade must be an integer")
+      .min(1, "Grade must be at least 1")
+      .max(12, "Grade cannot be greater than 12"),
 
-  academicYear: z.string().optional(),
+    academicYear: z
+      .string()
+      .trim()
+      .min(4, "Academic year is required")
+      .max(20, "Academic year must not exceed 20 characters"),
 
-  roomNo: z.string().optional(),
+    roomNo: z
+      .string()
+      .trim()
+      .min(1, "Room number is required")
+      .max(20, "Room number must not exceed 20 characters"),
 
-  capacity: z.coerce
-    .number()
-    .min(1, "Capacity must be at least 1"),
+    capacity: z.coerce
+      .number()
+      .int("Capacity must be an integer")
+      .min(1, "Capacity must be at least 1")
+      .max(1000, "Capacity cannot exceed 1000"),
 
-  enrolledCount: z.coerce
-    .number()
-    .min(0, "Enrolled count cannot be negative")
-    .optional(),
+    enrolledCount: z.coerce
+      .number()
+      .int("Enrolled count must be an integer")
+      .min(0, "Enrolled count cannot be negative")
+      .max(1000, "Enrolled count cannot exceed 1000"),
 
-  supervisor: z.string().optional(),
+    supervisor: z
+      .string()
+      .trim()
+      .min(2, "Supervisor name must be at least 2 characters")
+      .max(100, "Supervisor name must not exceed 100 characters"),
 
-  isActive: z.boolean().optional(),
-});
+    isActive: z.boolean({
+      required_error: "Active status is required",
+      invalid_type_error: "Active status must be true or false",
+    }),
+  })
+  .refine(
+    (data) => data.enrolledCount <= data.capacity,
+    {
+      message: "Enrolled count cannot be greater than class capacity",
+      path: ["enrolledCount"],
+    }
+  );
 
 type Inputs = z.infer<typeof schema>;
 

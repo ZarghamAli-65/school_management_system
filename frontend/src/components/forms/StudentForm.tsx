@@ -11,58 +11,251 @@ import { getClasses } from "@/lib/api/class.api";
 import { useState, useEffect } from "react";
 import { useNotification } from "@/components/NotificationProvider";
 
+
 const schema = z.object({
-  // Authentication
-  studentId: z.string().min(3, "Student ID must be at least 3 characters"),
-  email: z.string().email("Invalid email address"),
-  password: z.string().optional(),
-  username: z.string().optional(),
+  // ===== Authentication =====
+  studentId: z
+    .string()
+    .trim()
+    .min(3, "Student ID must be at least 3 characters")
+    .max(30, "Student ID must not exceed 30 characters"),
 
-  // Personal
-  firstName: z.string().min(1, "First name is required"),
-  lastName: z.string().min(1, "Last name is required"),
-  fatherName: z.string().min(1, "Father name is required"),
-  gender: z.enum(["MALE", "FEMALE", "OTHER"]).optional(),
-  dateOfBirth: z.string().optional(),
-  bloodType: z.string().optional(),
-  placeOfBirth: z.string().optional(),
-  nationality: z.string().optional(),
-  religion: z.string().optional(),
-  language: z.string().optional(),
+  email: z
+    .string()
+    .trim()
+    .email("Invalid email address")
+    .max(150, "Email must not exceed 150 characters"),
 
-  // Contact
-  street: z.string().optional(),
-  city: z.string().optional(),
-  province: z.string().optional(),
-  postalCode: z.string().optional(),
-  country: z.string().optional(),
-  phone: z.string().optional(),
-  photo: z.string().optional(),
+  password: z
+    .string()
+    .min(8, "Password must be at least 8 characters")
+    .max(100, "Password must not exceed 100 characters"),
 
-  // Emergency
-  emergencyContactName: z.string().optional(),
-  emergencyContactPhone: z.string().optional(),
-  emergencyContactRelation: z.string().optional(),
+  username: z
+    .string()
+    .trim()
+    .min(3, "Username must be at least 3 characters")
+    .max(50, "Username must not exceed 50 characters")
+    .regex(
+      /^[a-zA-Z0-9_]+$/,
+      "Username can only contain letters, numbers, and underscores"
+    ),
 
-  // Academic
-  classId: z.coerce.number().optional(),
-  section: z.string().optional(),
-  rollNumber: z.coerce.number().optional(),
-  academicYear: z.string().optional(),
+  // ===== Personal Information =====
+  firstName: z
+    .string()
+    .trim()
+    .min(2, "First name must be at least 2 characters")
+    .max(50, "First name must not exceed 50 characters"),
 
-  // Enrollment
-  enrollmentDate: z.string().optional(),
-  admissionYear: z.coerce.number().optional(),
-  previousSchool: z.string().optional(),
-  status: z
-    .enum(["ACTIVE", "GRADUATED", "TRANSFERRED", "WITHDRAWN", "SUSPENDED"])
+  lastName: z
+    .string()
+    .trim()
+    .min(2, "Last name must be at least 2 characters")
+    .max(50, "Last name must not exceed 50 characters"),
+
+  fatherName: z
+    .string()
+    .trim()
+    .min(2, "Father name must be at least 2 characters")
+    .max(100, "Father name must not exceed 100 characters"),
+
+  gender: z.enum(["MALE", "FEMALE", "OTHER"], {
+    errorMap: () => ({
+      message: "Gender must be MALE, FEMALE, or OTHER",
+    }),
+  }),
+
+  dateOfBirth: z
+    .string()
+    .trim()
+    .min(1, "Date of birth is required"),
+
+  bloodType: z
+    .string()
+    .trim()
+    .min(1, "Blood type is required")
+    .max(5, "Blood type must not exceed 5 characters"),
+
+  placeOfBirth: z
+    .string()
+    .trim()
+    .min(2, "Place of birth must be at least 2 characters")
+    .max(100, "Place of birth must not exceed 100 characters"),
+
+  nationality: z
+    .string()
+    .trim()
+    .min(2, "Nationality must be at least 2 characters")
+    .max(50, "Nationality must not exceed 50 characters"),
+
+  religion: z
+    .string()
+    .trim()
+    .min(2, "Religion must be at least 2 characters")
+    .max(50, "Religion must not exceed 50 characters"),
+
+  language: z
+    .string()
+    .trim()
+    .min(2, "Language must be at least 2 characters")
+    .max(50, "Language must not exceed 50 characters"),
+
+  // ===== Contact Information =====
+  street: z
+    .string()
+    .trim()
+    .min(3, "Street address must be at least 3 characters")
+    .max(200, "Street address must not exceed 200 characters"),
+
+  city: z
+    .string()
+    .trim()
+    .min(2, "City must be at least 2 characters")
+    .max(100, "City must not exceed 100 characters"),
+
+  province: z
+    .string()
+    .trim()
+    .min(2, "Province/State must be at least 2 characters")
+    .max(100, "Province/State must not exceed 100 characters"),
+
+  postalCode: z
+    .string()
+    .trim()
+    .min(3, "Postal code must be at least 3 characters")
+    .max(10, "Postal code must not exceed 10 characters")
+    .regex(
+      /^[0-9]+$/,
+      "Postal code must contain numbers only"
+    ),
+
+  country: z
+    .string()
+    .trim()
+    .min(2, "Country must be at least 2 characters")
+    .max(100, "Country must not exceed 100 characters"),
+
+  phone: z
+    .string()
+    .trim()
+    .min(7, "Phone number must be at least 7 digits")
+    .max(15, "Phone number must not exceed 15 digits")
+    .regex(
+      /^[0-9]+$/,
+      "Phone must contain numbers only"
+    ),
+
+  photo: z
+    .string()
+    .trim()
+    .min(1, "Photo is required")
     .optional(),
 
-  // Parent
-  parentId: z.coerce.number().optional(),
-  guardianRelation: z
-    .enum(["FATHER", "MOTHER", "GUARDIAN", "OTHER"])
-    .optional(),
+  // ===== Emergency Contact =====
+  emergencyContactName: z
+    .string()
+    .trim()
+    .min(2, "Emergency contact name must be at least 2 characters")
+    .max(100, "Emergency contact name must not exceed 100 characters"),
+
+  emergencyContactPhone: z
+    .string()
+    .trim()
+    .min(7, "Emergency phone must be at least 7 digits")
+    .max(15, "Emergency phone must not exceed 15 digits")
+    .regex(
+      /^[0-9]+$/,
+      "Emergency phone must contain numbers only"
+    ),
+
+  emergencyContactRelation: z
+    .string()
+    .trim()
+    .min(2, "Emergency contact relationship is required")
+    .max(50, "Emergency contact relationship must not exceed 50 characters"),
+
+  // ===== Academic Information =====
+  classId: z.coerce
+    .number({
+      required_error: "Class ID is required",
+      invalid_type_error: "Class ID must be a number",
+    })
+    .int("Class ID must be an integer")
+    .positive("Class ID must be a positive number"),
+
+  section: z
+    .string()
+    .trim()
+    .min(1, "Section is required")
+    .max(20, "Section must not exceed 20 characters"),
+
+  rollNumber: z.coerce
+    .number({
+      required_error: "Roll number is required",
+      invalid_type_error: "Roll number must be a number",
+    })
+    .int("Roll number must be an integer")
+    .positive("Roll number must be a positive number"),
+
+  academicYear: z
+    .string()
+    .trim()
+    .min(4, "Academic year must be valid")
+    .max(20, "Academic year must not exceed 20 characters"),
+
+  // ===== Enrollment =====
+  enrollmentDate: z
+    .string()
+    .trim()
+    .min(1, "Enrollment date is required"),
+
+  admissionYear: z.coerce
+    .number({
+      required_error: "Admission year is required",
+      invalid_type_error: "Admission year must be a number",
+    })
+    .int("Admission year must be an integer")
+    .min(1900, "Admission year must be at least 1900")
+    .max(
+      new Date().getFullYear(),
+      "Admission year cannot be in the future"
+    ),
+
+  previousSchool: z
+    .string()
+    .trim()
+    .min(2, "Previous school must be at least 2 characters")
+    .max(150, "Previous school must not exceed 150 characters"),
+
+  status: z.enum(
+    ["ACTIVE", "GRADUATED", "TRANSFERRED", "WITHDRAWN", "SUSPENDED"],
+    {
+      errorMap: () => ({
+        message:
+          "Status must be ACTIVE, GRADUATED, TRANSFERRED, WITHDRAWN, or SUSPENDED",
+      }),
+    }
+  ),
+
+  // ===== Parent/Guardian =====
+  parentId: z.coerce
+    .number({
+      required_error: "Parent ID is required",
+      invalid_type_error: "Parent ID must be a number",
+    })
+    .int("Parent ID must be an integer")
+    .positive("Parent ID must be a positive number"),
+
+  guardianRelation: z.enum(
+    ["FATHER", "MOTHER", "GUARDIAN", "OTHER"],
+    {
+      errorMap: () => ({
+        message:
+          "Guardian relation must be FATHER, MOTHER, GUARDIAN, or OTHER",
+      }),
+    }
+  ),
 });
 
 type Inputs = z.infer<typeof schema>;

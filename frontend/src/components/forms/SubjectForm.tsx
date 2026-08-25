@@ -15,37 +15,57 @@ import { useNotification } from "@/components/NotificationProvider";
 const schema = z.object({
   code: z
     .string()
+    .trim()
     .min(2, "Subject code must be at least 2 characters")
-    .max(20, "Subject code must be less than 20 characters"),
+    .max(20, "Subject code must not exceed 20 characters")
+    .regex(
+      /^[A-Z0-9_-]+$/,
+      "Subject code can only contain letters, numbers, hyphens, and underscores"
+    ),
 
   name: z
     .string()
+    .trim()
     .min(2, "Subject name must be at least 2 characters")
-    .max(100, "Subject name must be less than 100 characters"),
+    .max(100, "Subject name must not exceed 100 characters"),
 
   shortName: z
     .string()
-    .max(100, "Short name must be less than 100 characters")
-    .optional(),
+    .trim()
+    .min(2, "Short name must be at least 2 characters")
+    .max(50, "Short name must not exceed 50 characters"),
 
   description: z
     .string()
-    .max(500, "Description must be less than 500 characters")
-    .optional(),
+    .trim()
+    .min(10, "Description must be at least 10 characters")
+    .max(500, "Description must not exceed 500 characters"),
 
   gradeLevel: z
     .string()
-    .max(50, "Grade level must be less than 50 characters")
-    .optional(),
+    .trim()
+    .min(1, "Grade level is required")
+    .max(50, "Grade level must not exceed 50 characters"),
 
   category: z
     .string()
-    .max(100, "Category must be less than 100 characters")
-    .optional(),
+    .trim()
+    .min(2, "Category must be at least 2 characters")
+    .max(100, "Category must not exceed 100 characters"),
 
   teacherIds: z
-    .array(z.coerce.number())
-    .optional(),
+    .array(
+      z.coerce
+        .number()
+        .int("Teacher ID must be an integer")
+        .positive("Teacher ID must be a positive number")
+    )
+    .min(1, "At least one teacher must be assigned")
+    .max(50, "You cannot assign more than 50 teachers")
+    .refine(
+      (ids) => new Set(ids).size === ids.length,
+      "Teacher IDs must be unique"
+    ),
 });
 
 type Inputs = z.infer<typeof schema>;

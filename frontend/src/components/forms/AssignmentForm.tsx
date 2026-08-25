@@ -14,12 +14,53 @@ import { getTeachers } from "@/lib/api/teacher.api";     // adjust import
 
 // ---------- Zod Schema ----------
 const schema = z.object({
-  title: z.string().min(1, "Title is required"),
-  description: z.string().optional(),
-  subjectId: z.number().min(1, "Please select a subject"),
-  classId: z.number().min(1, "Please select a class"),
-  teacherId: z.number().min(1, "Please select a teacher"),
-  dueDate: z.string().min(1, "Due date is required"), // ISO date string
+  // ===== Assignment Information =====
+  title: z
+    .string()
+    .trim()
+    .min(2, "Assignment title must be at least 2 characters")
+    .max(150, "Assignment title must not exceed 150 characters"),
+
+  description: z
+    .string()
+    .trim()
+    .min(5, "Description must be at least 5 characters")
+    .max(500, "Description must not exceed 500 characters"),
+
+  // ===== References =====
+  subjectId: z.coerce
+    .number({
+      required_error: "Please select a subject",
+      invalid_type_error: "Subject ID must be a number",
+    })
+    .int("Subject ID must be an integer")
+    .positive("Subject ID must be a positive number"),
+
+  classId: z.coerce
+    .number({
+      required_error: "Please select a class",
+      invalid_type_error: "Class ID must be a number",
+    })
+    .int("Class ID must be an integer")
+    .positive("Class ID must be a positive number"),
+
+  teacherId: z.coerce
+    .number({
+      required_error: "Please select a teacher",
+      invalid_type_error: "Teacher ID must be a number",
+    })
+    .int("Teacher ID must be an integer")
+    .positive("Teacher ID must be a positive number"),
+
+  // ===== Assignment Schedule =====
+  dueDate: z
+    .string()
+    .trim()
+    .min(1, "Due date is required")
+    .refine(
+      (value) => !Number.isNaN(Date.parse(value)),
+      "Due date must be a valid date"
+    ),
 });
 
 type Inputs = z.infer<typeof schema>;

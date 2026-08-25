@@ -10,15 +10,73 @@ import { useNotification } from "@/components/NotificationProvider";
 import { createEvent, updateEvent } from "@/lib/api/event.api";
 import { getClasses } from "@/lib/api/class.api";
 
-const schema = z.object({
-  title: z.string().min(1, "Title is required"),
-  description: z.string().optional(),
-  classId: z.coerce.number().optional(),
-  eventDate: z.string().min(1, "Event date is required"),
-  startTime: z.string().min(1, "Start time is required"),
-  endTime: z.string().min(1, "End time is required"),
-  venue: z.string().optional(),
-});
+const schema = z
+  .object({
+    // ===== Event Information =====
+    title: z
+      .string()
+      .trim()
+      .min(2, "Event title must be at least 2 characters")
+      .max(150, "Event title must not exceed 150 characters"),
+
+    description: z
+      .string()
+      .trim()
+      .min(5, "Description must be at least 5 characters")
+      .max(500, "Description must not exceed 500 characters"),
+
+    // ===== Class =====
+    classId: z.coerce
+      .number({
+        required_error: "Class is required",
+        invalid_type_error: "Class ID must be a number",
+      })
+      .int("Class ID must be an integer")
+      .positive("Class ID must be a positive number"),
+
+    // ===== Event Date =====
+    eventDate: z
+      .string()
+      .trim()
+      .min(1, "Event date is required")
+      .refine(
+        (value) => !Number.isNaN(Date.parse(value)),
+        "Event date must be a valid date"
+      ),
+
+    // ===== Event Time =====
+    startTime: z
+      .string()
+      .trim()
+      .min(1, "Start time is required")
+      .regex(
+        /^([01]\d|2[0-3]):[0-5]\d$/,
+        "Start time must be in HH:mm format"
+      ),
+
+    endTime: z
+      .string()
+      .trim()
+      .min(1, "End time is required")
+      .regex(
+        /^([01]\d|2[0-3]):[0-5]\d$/,
+        "End time must be in HH:mm format"
+      ),
+
+    // ===== Venue =====
+    venue: z
+      .string()
+      .trim()
+      .min(2, "Venue must be at least 2 characters")
+      .max(150, "Venue must not exceed 150 characters"),
+  })
+  .refine(
+    (data) => data.startTime < data.endTime,
+    {
+      message: "End time must be after start time",
+      path: ["endTime"],
+    }
+  );
 
 type Inputs = z.infer<typeof schema>;
 
