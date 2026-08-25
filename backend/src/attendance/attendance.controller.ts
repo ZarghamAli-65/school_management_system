@@ -30,7 +30,9 @@ interface AuthenticatedRequest extends Request {
 @Controller('attendance')
 @UseGuards(JwtAuthGuard, RolesGuard)
 export class AttendanceController {
-  constructor(private readonly attendanceService: AttendanceService) {}
+  constructor(
+    private readonly attendanceService: AttendanceService,
+  ) {}
 
   @Post('students/mark')
   @Roles(Role.ADMIN, Role.TEACHER)
@@ -41,6 +43,7 @@ export class AttendanceController {
     return this.attendanceService.markStudentAttendance(
       dto,
       req.user.id,
+      req.user.role,
     );
   }
 
@@ -58,13 +61,24 @@ export class AttendanceController {
 
   @Get('students')
   @Roles(Role.ADMIN, Role.TEACHER)
-  getStudentAttendance(@Query() query: AttendanceQueryDto) {
-    return this.attendanceService.getStudentAttendance(query);
+  getStudentAttendance(
+    @Query() query: AttendanceQueryDto,
+    @Req() req: AuthenticatedRequest,
+  ) {
+    return this.attendanceService.getStudentAttendance(
+      query,
+      req.user.id,
+      req.user.role,
+    );
   }
 
   @Get('teachers')
   @Roles(Role.ADMIN)
-  getTeacherAttendance(@Query() query: AttendanceQueryDto) {
-    return this.attendanceService.getTeacherAttendance(query);
+  getTeacherAttendance(
+    @Query() query: AttendanceQueryDto,
+  ) {
+    return this.attendanceService.getTeacherAttendance(
+      query,
+    );
   }
 }

@@ -3,6 +3,8 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
+import { Role } from '@prisma/client';
+
 import { PrismaService } from '../prisma/prisma.service';
 import { MarkStudentAttendanceDto } from './dto/mark-student-attendance.dto';
 import { MarkTeacherAttendanceDto } from './dto/mark-teacher-attendance.dto';
@@ -12,9 +14,26 @@ import { AttendanceQueryDto } from './dto/attendance-query.dto';
 export class AttendanceService {
   constructor(private readonly prisma: PrismaService) {}
 
+  private parseAttendanceDate(date: string): Date {
+    const [year, month, day] = date.split('-').map(Number);
+
+    if (!year || !month || !day) {
+      throw new BadRequestException(
+        'Invalid date format. Expected YYYY-MM-DD',
+      );
+    }
+
+    return new Date(year, month - 1, day, 0, 0, 0, 0);
+  }
+
+  // =========================
+  // MARK STUDENT ATTENDANCE
+  // =========================
+
   async markStudentAttendance(
     dto: MarkStudentAttendanceDto,
     markedById: string,
+    role: Role,
   ) {
     const { classId, date, students } = dto;
 
@@ -26,13 +45,45 @@ export class AttendanceService {
       throw new NotFoundException('Class not found');
     }
 
+    // TEACHER can only mark attendance for assigned classes
+    if (role === Role.TEACHER) {
+      const teacher = await this.prisma.teacher.findUnique({
+        where: {
+          userId: markedById,
+        },
+      });
+
+      if (!teacher) {
+        throw new NotFoundException(
+          'Teacher profile not found for the logged-in user',
+        );
+      }
+
+      const assignedClass = await this.prisma.teacherClass.findUnique({
+        where: {
+          teacherId_classId: {
+            teacherId: teacher.id,
+            classId,
+          },
+        },
+      });
+
+      if (!assignedClass) {
+        throw new BadRequestException(
+          'You are not assigned to this class',
+        );
+      }
+    }
+
     if (!students.length) {
       throw new BadRequestException(
         'At least one student attendance record is required',
       );
     }
 
-    const studentIds = students.map((student) => student.studentId);
+    const studentIds = students.map(
+      (student) => student.studentId,
+    );
 
     const classStudents = await this.prisma.student.findMany({
       where: {
@@ -60,8 +111,7 @@ export class AttendanceService {
       );
     }
 
-    const attendanceDate = new Date(date);
-    attendanceDate.setHours(0, 0, 0, 0);
+    const attendanceDate = this.parseAttendanceDate(date);
 
     const operations = students.map((student) =>
       this.prisma.studentAttendance.upsert({
@@ -96,6 +146,10 @@ export class AttendanceService {
     };
   }
 
+  // =========================
+  // MARK TEACHER ATTENDANCE
+  // =========================
+
   async markTeacherAttendance(
     dto: MarkTeacherAttendanceDto,
     markedById: string,
@@ -110,8 +164,7 @@ export class AttendanceService {
       throw new NotFoundException('Teacher not found');
     }
 
-    const attendanceDate = new Date(date);
-    attendanceDate.setHours(0, 0, 0, 0);
+    const attendanceDate = this.parseAttendanceDate(date);
 
     const attendance = await this.prisma.teacherAttendance.upsert({
       where: {
@@ -140,12 +193,67 @@ export class AttendanceService {
     };
   }
 
-  async getStudentAttendance(query: AttendanceQueryDto) {
-    const { classId, studentId, date, dateFrom, dateTo, status } = query;
+  // =========================
+  // GET STUDENT ATTENDANCE
+  // =========================
+
+  async getStudentAttendance(
+    query: AttendanceQueryDto,
+    userId: string,
+    role: Role,
+  ) {
+    const { classId, studentId, date, dateFrom, dateTo, status } =
+      query;
 
     const where: any = {};
 
-    if (classId !== undefined) {
+    // TEACHER can only view attendance for assigned classes
+    if (role === Role.TEACHER) {
+      const teacher = await this.prisma.teacher.findUnique({
+        where: {
+          userId,
+        },
+      });
+
+      if (!teacher) {
+        throw new NotFoundException(
+          'Teacher profile not found for the logged-in user',
+        );
+      }
+
+      const assignedClasses = await this.prisma.teacherClass.findMany({
+        where: {
+          teacherId: teacher.id,
+        },
+        select: {
+          classId: true,
+        },
+      });
+
+      const assignedClassIds = assignedClasses.map(
+        (assignment) => assignment.classId,
+      );
+
+      if (!assignedClassIds.length) {
+        return [];
+      }
+
+      if (
+        classId !== undefined &&
+        !assignedClassIds.includes(classId)
+      ) {
+        throw new BadRequestException(
+          'You are not assigned to this class',
+        );
+      }
+
+      where.classId =
+        classId !== undefined
+          ? classId
+          : {
+              in: assignedClassIds,
+            };
+    } else if (classId !== undefined) {
       where.classId = classId;
     }
 
@@ -158,8 +266,7 @@ export class AttendanceService {
     }
 
     if (date) {
-      const attendanceDate = new Date(date);
-      attendanceDate.setHours(0, 0, 0, 0);
+      const attendanceDate = this.parseAttendanceDate(date);
 
       const nextDate = new Date(attendanceDate);
       nextDate.setDate(nextDate.getDate() + 1);
@@ -172,15 +279,15 @@ export class AttendanceService {
       where.date = {};
 
       if (dateFrom) {
-        const from = new Date(dateFrom);
-        from.setHours(0, 0, 0, 0);
-        where.date.gte = from;
+        where.date.gte =
+          this.parseAttendanceDate(dateFrom);
       }
 
       if (dateTo) {
-        const to = new Date(dateTo);
-        to.setHours(23, 59, 59, 999);
-        where.date.lte = to;
+        const to = this.parseAttendanceDate(dateTo);
+        to.setDate(to.getDate() + 1);
+
+        where.date.lt = to;
       }
     }
 
@@ -203,6 +310,10 @@ export class AttendanceService {
     });
   }
 
+  // =========================
+  // GET TEACHER ATTENDANCE
+  // =========================
+
   async getTeacherAttendance(query: AttendanceQueryDto) {
     const { teacherId, date, dateFrom, dateTo, status } = query;
 
@@ -217,8 +328,7 @@ export class AttendanceService {
     }
 
     if (date) {
-      const attendanceDate = new Date(date);
-      attendanceDate.setHours(0, 0, 0, 0);
+      const attendanceDate = this.parseAttendanceDate(date);
 
       const nextDate = new Date(attendanceDate);
       nextDate.setDate(nextDate.getDate() + 1);
@@ -231,15 +341,15 @@ export class AttendanceService {
       where.date = {};
 
       if (dateFrom) {
-        const from = new Date(dateFrom);
-        from.setHours(0, 0, 0, 0);
-        where.date.gte = from;
+        where.date.gte =
+          this.parseAttendanceDate(dateFrom);
       }
 
       if (dateTo) {
-        const to = new Date(dateTo);
-        to.setHours(23, 59, 59, 999);
-        where.date.lte = to;
+        const to = this.parseAttendanceDate(dateTo);
+        to.setDate(to.getDate() + 1);
+
+        where.date.lt = to;
       }
     }
 
