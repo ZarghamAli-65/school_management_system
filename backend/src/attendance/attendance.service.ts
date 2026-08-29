@@ -14,21 +14,50 @@ import { AttendanceQueryDto } from './dto/attendance-query.dto';
 export class AttendanceService {
   constructor(private readonly prisma: PrismaService) {}
 
+  // ============================================================
+  // DATE HELPER
+  // ============================================================
+
   private parseAttendanceDate(date: string): Date {
     const [year, month, day] = date.split('-').map(Number);
 
-    if (!year || !month || !day) {
+    if (
+      !year ||
+      !month ||
+      !day ||
+      month < 1 ||
+      month > 12 ||
+      day < 1 ||
+      day > 31
+    ) {
       throw new BadRequestException(
         'Invalid date format. Expected YYYY-MM-DD',
       );
     }
 
-    return new Date(year, month - 1, day, 0, 0, 0, 0);
+    const parsedDate = new Date(
+      Date.UTC(year, month - 1, day, 0, 0, 0, 0),
+    );
+
+    if (
+      parsedDate.getUTCFullYear() !== year ||
+      parsedDate.getUTCMonth() !== month - 1 ||
+      parsedDate.getUTCDate() !== day
+    ) {
+      throw new BadRequestException('Invalid attendance date');
+    }
+
+    return parsedDate;
   }
 
-  // =========================
+  // ============================================================
   // MARK STUDENT ATTENDANCE
-  // =========================
+  //
+  // ADMIN   -> any class
+  // TEACHER -> assigned classes only
+  // STUDENT -> blocked
+  // PARENT  -> blocked
+  // ============================================================
 
   async markStudentAttendance(
     dto: MarkStudentAttendanceDto,
@@ -37,19 +66,46 @@ export class AttendanceService {
   ) {
     const { classId, date, students } = dto;
 
+    if (!students || students.length === 0) {
+      throw new BadRequestException(
+        'At least one student attendance record is required',
+      );
+    }
+
+    if (role !== Role.ADMIN && role !== Role.TEACHER) {
+      throw new BadRequestException(
+        'You are not allowed to mark student attendance',
+      );
+    }
+
     const classExists = await this.prisma.class.findUnique({
-      where: { id: classId },
+      where: {
+        id: classId,
+      },
+      select: {
+        id: true,
+      },
     });
 
     if (!classExists) {
       throw new NotFoundException('Class not found');
     }
 
-    // TEACHER can only mark attendance for assigned classes
+    // ==========================================================
+    // IMPORTANT:
+    // ONLY TEACHER IS SUBJECT TO ASSIGNED-CLASS CHECK.
+    //
+    // ADMIN SKIPS THIS ENTIRE BLOCK.
+    // Therefore ADMIN can mark ANY existing class.
+    // ==========================================================
+
     if (role === Role.TEACHER) {
       const teacher = await this.prisma.teacher.findUnique({
         where: {
           userId: markedById,
+        },
+        select: {
+          id: true,
         },
       });
 
@@ -59,14 +115,19 @@ export class AttendanceService {
         );
       }
 
-      const assignedClass = await this.prisma.teacherClass.findUnique({
-        where: {
-          teacherId_classId: {
-            teacherId: teacher.id,
-            classId,
+      const assignedClass =
+        await this.prisma.teacherClass.findUnique({
+          where: {
+            teacherId_classId: {
+              teacherId: teacher.id,
+              classId,
+            },
           },
-        },
-      });
+          select: {
+            teacherId: true,
+            classId: true,
+          },
+        });
 
       if (!assignedClass) {
         throw new BadRequestException(
@@ -75,15 +136,25 @@ export class AttendanceService {
       }
     }
 
-    if (!students.length) {
-      throw new BadRequestException(
-        'At least one student attendance record is required',
-      );
-    }
+    // ==========================================================
+    // DUPLICATE STUDENT IDs
+    // ==========================================================
 
     const studentIds = students.map(
       (student) => student.studentId,
     );
+
+    const uniqueStudentIds = new Set(studentIds);
+
+    if (uniqueStudentIds.size !== studentIds.length) {
+      throw new BadRequestException(
+        'Duplicate student attendance records are not allowed',
+      );
+    }
+
+    // ==========================================================
+    // VERIFY STUDENTS BELONG TO SELECTED CLASS
+    // ==========================================================
 
     const classStudents = await this.prisma.student.findMany({
       where: {
@@ -107,11 +178,18 @@ export class AttendanceService {
 
     if (invalidStudentIds.length > 0) {
       throw new BadRequestException(
-        `Some students do not belong to the selected class: ${invalidStudentIds.join(', ')}`,
+        `Some students do not belong to the selected class: ${invalidStudentIds.join(
+          ', ',
+        )}`,
       );
     }
 
-    const attendanceDate = this.parseAttendanceDate(date);
+    const attendanceDate =
+      this.parseAttendanceDate(date);
+
+    // ==========================================================
+    // SAVE / UPDATE
+    // ==========================================================
 
     const operations = students.map((student) =>
       this.prisma.studentAttendance.upsert({
@@ -121,12 +199,14 @@ export class AttendanceService {
             date: attendanceDate,
           },
         },
+
         update: {
           status: student.status,
           remarks: student.remarks,
           classId,
           markedById,
         },
+
         create: {
           studentId: student.studentId,
           classId,
@@ -138,7 +218,8 @@ export class AttendanceService {
       }),
     );
 
-    const attendance = await this.prisma.$transaction(operations);
+    const attendance =
+      await this.prisma.$transaction(operations);
 
     return {
       message: 'Student attendance saved successfully',
@@ -146,46 +227,70 @@ export class AttendanceService {
     };
   }
 
-  // =========================
+  // ============================================================
   // MARK TEACHER ATTENDANCE
-  // =========================
+  //
+  // ADMIN ONLY
+  // ============================================================
 
   async markTeacherAttendance(
     dto: MarkTeacherAttendanceDto,
     markedById: string,
+    role: Role,
   ) {
-    const { teacherId, date, status, remarks } = dto;
+    if (role !== Role.ADMIN) {
+      throw new BadRequestException(
+        'Only admin can mark teacher attendance',
+      );
+    }
 
-    const teacherExists = await this.prisma.teacher.findUnique({
-      where: { id: teacherId },
-    });
+    const {
+      teacherId,
+      date,
+      status,
+      remarks,
+    } = dto;
+
+    const teacherExists =
+      await this.prisma.teacher.findUnique({
+        where: {
+          id: teacherId,
+        },
+        select: {
+          id: true,
+        },
+      });
 
     if (!teacherExists) {
       throw new NotFoundException('Teacher not found');
     }
 
-    const attendanceDate = this.parseAttendanceDate(date);
+    const attendanceDate =
+      this.parseAttendanceDate(date);
 
-    const attendance = await this.prisma.teacherAttendance.upsert({
-      where: {
-        teacherId_date: {
+    const attendance =
+      await this.prisma.teacherAttendance.upsert({
+        where: {
+          teacherId_date: {
+            teacherId,
+            date: attendanceDate,
+          },
+        },
+
+        update: {
+          status,
+          remarks,
+          markedById,
+        },
+
+        create: {
           teacherId,
           date: attendanceDate,
+          status,
+          remarks,
+          markedById,
         },
-      },
-      update: {
-        status,
-        remarks,
-        markedById,
-      },
-      create: {
-        teacherId,
-        date: attendanceDate,
-        status,
-        remarks,
-        markedById,
-      },
-    });
+      });
 
     return {
       message: 'Teacher attendance saved successfully',
@@ -193,25 +298,63 @@ export class AttendanceService {
     };
   }
 
-  // =========================
+  // ============================================================
   // GET STUDENT ATTENDANCE
-  // =========================
+  //
+  // ADMIN:
+  //   All students / selected class
+  //
+  // TEACHER:
+  //   Assigned classes only
+  //
+  // STUDENT:
+  //   Own attendance only
+  //
+  // PARENT:
+  //   Own children's attendance only
+  // ============================================================
 
   async getStudentAttendance(
     query: AttendanceQueryDto,
     userId: string,
     role: Role,
   ) {
-    const { classId, studentId, date, dateFrom, dateTo, status } =
-      query;
+    const {
+      classId,
+      studentId,
+      date,
+      dateFrom,
+      dateTo,
+      status,
+    } = query;
 
     const where: any = {};
 
-    // TEACHER can only view attendance for assigned classes
+    // ==========================================================
+    // ADMIN
+    // ==========================================================
+
+    if (role === Role.ADMIN) {
+      if (classId !== undefined) {
+        where.classId = classId;
+      }
+
+      if (studentId !== undefined) {
+        where.studentId = studentId;
+      }
+    }
+
+    // ==========================================================
+    // TEACHER
+    // ==========================================================
+
     if (role === Role.TEACHER) {
       const teacher = await this.prisma.teacher.findUnique({
         where: {
           userId,
+        },
+        select: {
+          id: true,
         },
       });
 
@@ -221,20 +364,22 @@ export class AttendanceService {
         );
       }
 
-      const assignedClasses = await this.prisma.teacherClass.findMany({
-        where: {
-          teacherId: teacher.id,
-        },
-        select: {
-          classId: true,
-        },
-      });
+      const assignedClasses =
+        await this.prisma.teacherClass.findMany({
+          where: {
+            teacherId: teacher.id,
+          },
+          select: {
+            classId: true,
+          },
+        });
 
-      const assignedClassIds = assignedClasses.map(
-        (assignment) => assignment.classId,
-      );
+      const assignedClassIds =
+        assignedClasses.map(
+          (assignment) => assignment.classId,
+        );
 
-      if (!assignedClassIds.length) {
+      if (assignedClassIds.length === 0) {
         return [];
       }
 
@@ -253,29 +398,134 @@ export class AttendanceService {
           : {
               in: assignedClassIds,
             };
-    } else if (classId !== undefined) {
-      where.classId = classId;
+
+      if (studentId !== undefined) {
+        where.studentId = studentId;
+      }
     }
 
-    if (studentId !== undefined) {
-      where.studentId = studentId;
+    // ==========================================================
+    // STUDENT
+    // ==========================================================
+
+    if (role === Role.STUDENT) {
+      const user = await this.prisma.user.findUnique({
+        where: {
+          id: userId,
+        },
+        select: {
+          email: true,
+        },
+      });
+
+      if (!user) {
+        throw new NotFoundException(
+          'Logged-in user not found',
+        );
+      }
+
+      const student =
+        await this.prisma.student.findUnique({
+          where: {
+            email: user.email,
+          },
+          select: {
+            id: true,
+          },
+        });
+
+      if (!student) {
+        throw new NotFoundException(
+          'Student profile not found for the logged-in user',
+        );
+      }
+
+      where.studentId = student.id;
+
+      if (classId !== undefined) {
+        where.classId = classId;
+      }
     }
+
+    // ==========================================================
+    // PARENT
+    // ==========================================================
+
+    if (role === Role.PARENT) {
+      const user = await this.prisma.user.findUnique({
+        where: {
+          id: userId,
+        },
+        select: {
+          email: true,
+        },
+      });
+
+      if (!user?.email) {
+        throw new NotFoundException(
+          'Parent account email not found',
+        );
+      }
+
+      const parent =
+        await this.prisma.parent.findUnique({
+          where: {
+            email: user.email,
+          },
+          select: {
+            id: true,
+          },
+        });
+
+      if (!parent) {
+        throw new NotFoundException(
+          'Parent profile not found for the logged-in user',
+        );
+      }
+
+      where.student = {
+        parentId: parent.id,
+      };
+
+      if (classId !== undefined) {
+        where.classId = classId;
+      }
+    }
+
+    // ==========================================================
+    // STATUS
+    // ==========================================================
 
     if (status !== undefined) {
       where.status = status;
     }
 
-    if (date) {
-      const attendanceDate = this.parseAttendanceDate(date);
+    // ==========================================================
+    // EXACT DATE
+    // ==========================================================
 
-      const nextDate = new Date(attendanceDate);
-      nextDate.setDate(nextDate.getDate() + 1);
+    if (date) {
+      const attendanceDate =
+        this.parseAttendanceDate(date);
+
+      const nextDate =
+        new Date(attendanceDate);
+
+      nextDate.setUTCDate(
+        nextDate.getUTCDate() + 1,
+      );
 
       where.date = {
         gte: attendanceDate,
         lt: nextDate,
       };
-    } else if (dateFrom || dateTo) {
+    }
+
+    // ==========================================================
+    // DATE RANGE
+    // ==========================================================
+
+    else if (dateFrom || dateTo) {
       where.date = {};
 
       if (dateFrom) {
@@ -284,18 +534,28 @@ export class AttendanceService {
       }
 
       if (dateTo) {
-        const to = this.parseAttendanceDate(dateTo);
-        to.setDate(to.getDate() + 1);
+        const to =
+          this.parseAttendanceDate(dateTo);
+
+        to.setUTCDate(
+          to.getUTCDate() + 1,
+        );
 
         where.date.lt = to;
       }
     }
+
+    // ==========================================================
+    // FETCH
+    // ==========================================================
 
     return this.prisma.studentAttendance.findMany({
       where,
+
       include: {
         student: true,
         class: true,
+
         markedBy: {
           select: {
             id: true,
@@ -304,40 +564,148 @@ export class AttendanceService {
           },
         },
       },
-      orderBy: {
-        date: 'desc',
-      },
+
+      orderBy: [
+        {
+          date: 'desc',
+        },
+        {
+          studentId: 'asc',
+        },
+      ],
     });
   }
 
-  // =========================
+  // ============================================================
   // GET TEACHER ATTENDANCE
-  // =========================
+  //
+  // ADMIN:
+  //   All teachers / selected teacher
+  //
+  // TEACHER:
+  //   OWN attendance ONLY
+  //
+  // STUDENT / PARENT:
+  //   Blocked
+  // ============================================================
 
-  async getTeacherAttendance(query: AttendanceQueryDto) {
-    const { teacherId, date, dateFrom, dateTo, status } = query;
+  async getTeacherAttendance(
+    query: AttendanceQueryDto,
+    userId: string,
+    role: Role,
+  ) {
+    const {
+      teacherId,
+      date,
+      dateFrom,
+      dateTo,
+      status,
+    } = query;
 
     const where: any = {};
 
-    if (teacherId !== undefined) {
-      where.teacherId = teacherId;
+    // ==========================================================
+    // ADMIN
+    // ==========================================================
+
+    if (role === Role.ADMIN) {
+      if (teacherId !== undefined) {
+        const teacherExists =
+          await this.prisma.teacher.findUnique({
+            where: {
+              id: teacherId,
+            },
+            select: {
+              id: true,
+            },
+          });
+
+        if (!teacherExists) {
+          throw new NotFoundException(
+            'Teacher not found',
+          );
+        }
+
+        where.teacherId = teacherId;
+      }
     }
+
+    // ==========================================================
+    // TEACHER
+    //
+    // IMPORTANT:
+    // Frontend teacherId is completely ignored.
+    // Logged-in teacher is always the source of truth.
+    // ==========================================================
+
+    if (role === Role.TEACHER) {
+      const loggedInTeacher =
+        await this.prisma.teacher.findUnique({
+          where: {
+            userId,
+          },
+          select: {
+            id: true,
+          },
+        });
+
+      if (!loggedInTeacher) {
+        throw new NotFoundException(
+          'Teacher profile not found for the logged-in user',
+        );
+      }
+
+      where.teacherId =
+        loggedInTeacher.id;
+    }
+
+    // ==========================================================
+    // OTHER ROLES
+    // ==========================================================
+
+    if (
+      role !== Role.ADMIN &&
+      role !== Role.TEACHER
+    ) {
+      throw new BadRequestException(
+        'You are not allowed to view teacher attendance',
+      );
+    }
+
+    // ==========================================================
+    // STATUS
+    // ==========================================================
 
     if (status !== undefined) {
       where.status = status;
     }
 
-    if (date) {
-      const attendanceDate = this.parseAttendanceDate(date);
+    // ==========================================================
+    // EXACT DATE
+    // ==========================================================
 
-      const nextDate = new Date(attendanceDate);
-      nextDate.setDate(nextDate.getDate() + 1);
+    if (date) {
+      const attendanceDate =
+        this.parseAttendanceDate(date);
+
+      const nextDate =
+        new Date(attendanceDate);
+
+      nextDate.setUTCDate(
+        nextDate.getUTCDate() + 1,
+      );
 
       where.date = {
         gte: attendanceDate,
         lt: nextDate,
       };
-    } else if (dateFrom || dateTo) {
+    }
+
+    // ==========================================================
+    // DATE RANGE
+    // ==========================================================
+
+    else if (dateFrom || dateTo) {
       where.date = {};
 
       if (dateFrom) {
@@ -346,17 +714,27 @@ export class AttendanceService {
       }
 
       if (dateTo) {
-        const to = this.parseAttendanceDate(dateTo);
-        to.setDate(to.getDate() + 1);
+        const to =
+          this.parseAttendanceDate(dateTo);
+
+        to.setUTCDate(
+          to.getUTCDate() + 1,
+        );
 
         where.date.lt = to;
       }
     }
 
+    // ==========================================================
+    // FETCH
+    // ==========================================================
+
     return this.prisma.teacherAttendance.findMany({
       where,
+
       include: {
         teacher: true,
+
         markedBy: {
           select: {
             id: true,
@@ -365,9 +743,15 @@ export class AttendanceService {
           },
         },
       },
-      orderBy: {
-        date: 'desc',
-      },
+
+      orderBy: [
+        {
+          date: 'desc',
+        },
+        {
+          teacherId: 'asc',
+        },
+      ],
     });
   }
 }

@@ -1,6 +1,10 @@
 import { API_URL, getAuthToken } from "./client";
 
-export type StudentAttendanceStatus = "PRESENT" | "ABSENT" | "LEAVE";
+export type StudentAttendanceStatus =
+  | "PRESENT"
+  | "ABSENT"
+  | "LEAVE";
+
 export type TeacherAttendanceStatus =
   | "PRESENT"
   | "ABSENT"
@@ -55,11 +59,39 @@ async function request(
 
   if (!res.ok) {
     const text = await res.text();
-    throw new Error(text || "Attendance request failed");
+
+    let message = "Attendance request failed";
+
+    try {
+      const errorData = JSON.parse(text);
+
+      if (Array.isArray(errorData?.message)) {
+        message = errorData.message.join(", ");
+      } else if (errorData?.message) {
+        message = errorData.message;
+      } else if (text) {
+        message = text;
+      }
+    } catch {
+      if (text) {
+        message = text;
+      }
+    }
+
+    throw new Error(message);
   }
 
   return res.json();
 }
+
+// ============================================================
+// MARK STUDENT ATTENDANCE
+//
+// ADMIN  -> allowed
+// TEACHER -> allowed for assigned classes
+// STUDENT -> blocked by backend
+// PARENT  -> blocked by backend
+// ============================================================
 
 export async function markStudentAttendance(
   payload: MarkStudentAttendancePayload,
@@ -70,6 +102,15 @@ export async function markStudentAttendance(
   });
 }
 
+// ============================================================
+// MARK TEACHER ATTENDANCE
+//
+// ADMIN -> allowed
+// TEACHER -> blocked by backend
+// STUDENT -> blocked by backend
+// PARENT -> blocked by backend
+// ============================================================
+
 export async function markTeacherAttendance(
   payload: MarkTeacherAttendancePayload,
 ) {
@@ -78,6 +119,15 @@ export async function markTeacherAttendance(
     body: JSON.stringify(payload),
   });
 }
+
+// ============================================================
+// GET STUDENT ATTENDANCE
+//
+// ADMIN   -> all / filtered attendance
+// TEACHER -> assigned classes only
+// STUDENT -> own attendance
+// PARENT  -> children's attendance
+// ============================================================
 
 export async function getStudentAttendance(
   query: AttendanceQuery = {},
@@ -93,9 +143,20 @@ export async function getStudentAttendance(
   const queryString = params.toString();
 
   return request(
-    `${API_URL}/attendance/students${queryString ? `?${queryString}` : ""}`,
+    `${API_URL}/attendance/students${
+      queryString ? `?${queryString}` : ""
+    }`,
   );
 }
+
+// ============================================================
+// GET TEACHER ATTENDANCE
+//
+// ADMIN   -> all teacher attendance
+// TEACHER -> own attendance only
+// STUDENT -> blocked by backend
+// PARENT  -> blocked by backend
+// ============================================================
 
 export async function getTeacherAttendance(
   query: AttendanceQuery = {},
@@ -111,6 +172,8 @@ export async function getTeacherAttendance(
   const queryString = params.toString();
 
   return request(
-    `${API_URL}/attendance/teachers${queryString ? `?${queryString}` : ""}`,
+    `${API_URL}/attendance/teachers${
+      queryString ? `?${queryString}` : ""
+    }`,
   );
 }

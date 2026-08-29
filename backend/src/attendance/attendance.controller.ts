@@ -7,6 +7,7 @@ import {
   Req,
   UseGuards,
 } from '@nestjs/common';
+
 import { Request } from 'express';
 import { Role } from '@prisma/client';
 
@@ -34,6 +35,22 @@ export class AttendanceController {
     private readonly attendanceService: AttendanceService,
   ) {}
 
+  // ============================================================
+  // STUDENT ATTENDANCE - MARK
+  //
+  // ADMIN:
+  //   Can mark/edit any student's attendance.
+  //
+  // TEACHER:
+  //   Can mark/edit students from assigned classes only.
+  //
+  // STUDENT:
+  //   Cannot mark attendance.
+  //
+  // PARENT:
+  //   Cannot mark attendance.
+  // ============================================================
+
   @Post('students/mark')
   @Roles(Role.ADMIN, Role.TEACHER)
   markStudentAttendance(
@@ -47,6 +64,17 @@ export class AttendanceController {
     );
   }
 
+  // ============================================================
+  // TEACHER ATTENDANCE - MARK
+  //
+  // ADMIN ONLY
+  //
+  // Admin can mark/edit attendance for any teacher.
+  //
+  // TEACHER:
+  //   Cannot mark teacher attendance.
+  // ============================================================
+
   @Post('teachers/mark')
   @Roles(Role.ADMIN)
   markTeacherAttendance(
@@ -56,11 +84,33 @@ export class AttendanceController {
     return this.attendanceService.markTeacherAttendance(
       dto,
       req.user.id,
+      req.user.role,
     );
   }
 
+  // ============================================================
+  // STUDENT ATTENDANCE - VIEW
+  //
+  // ADMIN:
+  //   All attendance.
+  //
+  // TEACHER:
+  //   Assigned classes only.
+  //
+  // STUDENT:
+  //   Own attendance only.
+  //
+  // PARENT:
+  //   Own child's attendance only.
+  // ============================================================
+
   @Get('students')
-  @Roles(Role.ADMIN, Role.TEACHER)
+  @Roles(
+    Role.ADMIN,
+    Role.TEACHER,
+    Role.STUDENT,
+    Role.PARENT,
+  )
   getStudentAttendance(
     @Query() query: AttendanceQueryDto,
     @Req() req: AuthenticatedRequest,
@@ -72,13 +122,33 @@ export class AttendanceController {
     );
   }
 
+  // ============================================================
+  // TEACHER ATTENDANCE - VIEW
+  //
+  // ADMIN:
+  //   Can view all teacher attendance.
+  //
+  // TEACHER:
+  //   Can view own attendance only.
+  //
+  // STUDENT:
+  //   Cannot view teacher attendance.
+  //
+  // PARENT:
+  //   Cannot view teacher attendance.
+  // ============================================================
+
   @Get('teachers')
-  @Roles(Role.ADMIN)
+  @Roles(Role.ADMIN, Role.TEACHER)
   getTeacherAttendance(
     @Query() query: AttendanceQueryDto,
+    @Req() req: AuthenticatedRequest,
   ) {
     return this.attendanceService.getTeacherAttendance(
       query,
+      req.user.id,
+      req.user.role,
     );
   }
 }
+

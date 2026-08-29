@@ -1,19 +1,21 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
-import InputField from "../InputField";
 import Image from "next/image";
+
+import InputField from "../InputField";
 import { createStudent, updateStudent } from "@/lib/api/student.api";
 import { getParents } from "@/lib/api/parent.api";
 import { getClasses } from "@/lib/api/class.api";
-import { useState, useEffect } from "react";
 import { useNotification } from "@/components/NotificationProvider";
 
+const optionalString = z.string().trim().optional();
 
 const schema = z.object({
-  // ===== Authentication =====
+  // Authentication
   studentId: z
     .string()
     .trim()
@@ -26,10 +28,7 @@ const schema = z.object({
     .email("Invalid email address")
     .max(150, "Email must not exceed 150 characters"),
 
-  password: z
-    .string()
-    .min(8, "Password must be at least 8 characters")
-    .max(100, "Password must not exceed 100 characters"),
+  password: z.string().optional(),
 
   username: z
     .string()
@@ -41,7 +40,7 @@ const schema = z.object({
       "Username can only contain letters, numbers, and underscores"
     ),
 
-  // ===== Personal Information =====
+  // Personal
   firstName: z
     .string()
     .trim()
@@ -61,201 +60,102 @@ const schema = z.object({
     .max(100, "Father name must not exceed 100 characters"),
 
   gender: z.enum(["MALE", "FEMALE", "OTHER"], {
-    errorMap: () => ({
-      message: "Gender must be MALE, FEMALE, or OTHER",
-    }),
+    required_error: "Please select gender",
   }),
 
-  dateOfBirth: z
-    .string()
-    .trim()
-    .min(1, "Date of birth is required"),
-
-  bloodType: z
-    .string()
-    .trim()
-    .min(1, "Blood type is required")
-    .max(5, "Blood type must not exceed 5 characters"),
-
-  placeOfBirth: z
-    .string()
-    .trim()
-    .min(2, "Place of birth must be at least 2 characters")
-    .max(100, "Place of birth must not exceed 100 characters"),
-
-  nationality: z
-    .string()
-    .trim()
-    .min(2, "Nationality must be at least 2 characters")
-    .max(50, "Nationality must not exceed 50 characters"),
-
-  religion: z
-    .string()
-    .trim()
-    .min(2, "Religion must be at least 2 characters")
-    .max(50, "Religion must not exceed 50 characters"),
-
-  language: z
-    .string()
-    .trim()
-    .min(2, "Language must be at least 2 characters")
-    .max(50, "Language must not exceed 50 characters"),
-
-  // ===== Contact Information =====
-  street: z
-    .string()
-    .trim()
-    .min(3, "Street address must be at least 3 characters")
-    .max(200, "Street address must not exceed 200 characters"),
-
-  city: z
-    .string()
-    .trim()
-    .min(2, "City must be at least 2 characters")
-    .max(100, "City must not exceed 100 characters"),
-
-  province: z
-    .string()
-    .trim()
-    .min(2, "Province/State must be at least 2 characters")
-    .max(100, "Province/State must not exceed 100 characters"),
-
-  postalCode: z
-    .string()
-    .trim()
-    .min(3, "Postal code must be at least 3 characters")
-    .max(10, "Postal code must not exceed 10 characters")
-    .regex(
-      /^[0-9]+$/,
-      "Postal code must contain numbers only"
-    ),
-
-  country: z
-    .string()
-    .trim()
-    .min(2, "Country must be at least 2 characters")
-    .max(100, "Country must not exceed 100 characters"),
+  dateOfBirth: z.string().min(1, "Date of birth is required"),
 
   phone: z
     .string()
     .trim()
     .min(7, "Phone number must be at least 7 digits")
     .max(15, "Phone number must not exceed 15 digits")
-    .regex(
-      /^[0-9]+$/,
-      "Phone must contain numbers only"
+    .regex(/^[0-9]+$/, "Phone must contain numbers only"),
+
+  bloodType: optionalString,
+  placeOfBirth: optionalString,
+  nationality: optionalString,
+  religion: optionalString,
+  language: optionalString,
+  photo: optionalString,
+
+  // Contact
+  street: optionalString,
+  city: optionalString,
+  province: optionalString,
+  postalCode: optionalString,
+  country: optionalString,
+
+  // Academic
+  classId: z.string().min(1, "Please select a class"),
+
+  section: optionalString,
+
+  rollNumber: z
+    .string()
+    .min(1, "Roll number is required")
+    .refine(
+      (value) => Number.isInteger(Number(value)) && Number(value) > 0,
+      "Roll number must be a positive integer"
     ),
-
-  photo: z
-    .string()
-    .trim()
-    .min(1, "Photo is required")
-    .optional(),
-
-  // ===== Emergency Contact =====
-  emergencyContactName: z
-    .string()
-    .trim()
-    .min(2, "Emergency contact name must be at least 2 characters")
-    .max(100, "Emergency contact name must not exceed 100 characters"),
-
-  emergencyContactPhone: z
-    .string()
-    .trim()
-    .min(7, "Emergency phone must be at least 7 digits")
-    .max(15, "Emergency phone must not exceed 15 digits")
-    .regex(
-      /^[0-9]+$/,
-      "Emergency phone must contain numbers only"
-    ),
-
-  emergencyContactRelation: z
-    .string()
-    .trim()
-    .min(2, "Emergency contact relationship is required")
-    .max(50, "Emergency contact relationship must not exceed 50 characters"),
-
-  // ===== Academic Information =====
-  classId: z.coerce
-    .number({
-      required_error: "Class ID is required",
-      invalid_type_error: "Class ID must be a number",
-    })
-    .int("Class ID must be an integer")
-    .positive("Class ID must be a positive number"),
-
-  section: z
-    .string()
-    .trim()
-    .min(1, "Section is required")
-    .max(20, "Section must not exceed 20 characters"),
-
-  rollNumber: z.coerce
-    .number({
-      required_error: "Roll number is required",
-      invalid_type_error: "Roll number must be a number",
-    })
-    .int("Roll number must be an integer")
-    .positive("Roll number must be a positive number"),
 
   academicYear: z
     .string()
     .trim()
-    .min(4, "Academic year must be valid")
+    .min(4, "Academic year is required")
     .max(20, "Academic year must not exceed 20 characters"),
 
-  // ===== Enrollment =====
-  enrollmentDate: z
-    .string()
-    .trim()
-    .min(1, "Enrollment date is required"),
+  // Enrollment
+  enrollmentDate: z.string().min(1, "Enrollment date is required"),
 
-  admissionYear: z.coerce
-    .number({
-      required_error: "Admission year is required",
-      invalid_type_error: "Admission year must be a number",
-    })
-    .int("Admission year must be an integer")
-    .min(1900, "Admission year must be at least 1900")
-    .max(
-      new Date().getFullYear(),
-      "Admission year cannot be in the future"
+  admissionYear: z
+    .string()
+    .min(1, "Admission year is required")
+    .refine(
+      (value) =>
+        Number.isInteger(Number(value)) &&
+        Number(value) >= 1900 &&
+        Number(value) <= new Date().getFullYear(),
+      `Admission year must be between 1900 and ${new Date().getFullYear()}`
     ),
 
-  previousSchool: z
-    .string()
-    .trim()
-    .min(2, "Previous school must be at least 2 characters")
-    .max(150, "Previous school must not exceed 150 characters"),
+  previousSchool: optionalString,
 
-  status: z.enum(
-    ["ACTIVE", "GRADUATED", "TRANSFERRED", "WITHDRAWN", "SUSPENDED"],
-    {
-      errorMap: () => ({
-        message:
-          "Status must be ACTIVE, GRADUATED, TRANSFERRED, WITHDRAWN, or SUSPENDED",
-      }),
-    }
-  ),
+  status: z.enum([
+    "ACTIVE",
+    "GRADUATED",
+    "TRANSFERRED",
+    "WITHDRAWN",
+    "SUSPENDED",
+  ]),
 
-  // ===== Parent/Guardian =====
-  parentId: z.coerce
-    .number({
-      required_error: "Parent ID is required",
-      invalid_type_error: "Parent ID must be a number",
-    })
-    .int("Parent ID must be an integer")
-    .positive("Parent ID must be a positive number"),
+  // Parent / Guardian
+  parentId: z.string().min(1, "Please select a parent"),
 
   guardianRelation: z.enum(
     ["FATHER", "MOTHER", "GUARDIAN", "OTHER"],
     {
-      errorMap: () => ({
-        message:
-          "Guardian relation must be FATHER, MOTHER, GUARDIAN, or OTHER",
-      }),
+      required_error: "Please select guardian relation",
     }
   ),
+
+  // Emergency
+  emergencyContactName: optionalString,
+
+  emergencyContactPhone: z
+    .string()
+    .trim()
+    .optional()
+    .refine(
+      (value) =>
+        !value ||
+        (/^[0-9]+$/.test(value) &&
+          value.length >= 7 &&
+          value.length <= 15),
+      "Emergency phone must contain 7 to 15 digits"
+    ),
+
+  emergencyContactRelation: optionalString,
 });
 
 type Inputs = z.infer<typeof schema>;
@@ -280,22 +180,16 @@ type ParentOption = {
   lastName: string;
 };
 
-const StudentForm = ({ type, data, onSuccess }: StudentFormProps) => {
+const StudentForm = ({
+  type,
+  data,
+  onSuccess,
+}: StudentFormProps) => {
   const [loading, setLoading] = useState(false);
   const [classes, setClasses] = useState<ClassOption[]>([]);
   const [parents, setParents] = useState<ParentOption[]>([]);
 
   const { showNotification } = useNotification();
-
-  useEffect(() => {
-    getClasses()
-      .then((data) => setClasses(data))
-      .catch((err) => console.error("Failed to load classes:", err));
-
-    getParents()
-      .then((data) => setParents(data))
-      .catch((err) => console.error("Failed to load parents:", err));
-  }, []);
 
   const {
     register,
@@ -315,65 +209,110 @@ const StudentForm = ({ type, data, onSuccess }: StudentFormProps) => {
       lastName: data?.lastName || "",
       fatherName: data?.fatherName || "",
       gender: data?.gender || undefined,
+
       dateOfBirth: data?.dateOfBirth
-        ? data.dateOfBirth.split("T")[0]
+        ? new Date(data.dateOfBirth).toISOString().split("T")[0]
         : "",
+
+      phone: data?.phone || "",
       bloodType: data?.bloodType || "",
       placeOfBirth: data?.placeOfBirth || "",
       nationality: data?.nationality || "",
       religion: data?.religion || "",
       language: data?.language || "",
+      photo: data?.photo || "",
 
       street: data?.street || "",
       city: data?.city || "",
       province: data?.province || "",
       postalCode: data?.postalCode || "",
       country: data?.country || "",
-      phone: data?.phone || "",
-      photo: data?.photo || "",
-
-      emergencyContactName: data?.emergencyContactName || "",
-      emergencyContactPhone: data?.emergencyContactPhone || "",
-      emergencyContactRelation: data?.emergencyContactRelation || "",
 
       classId:
         data?.classId !== undefined
-          ? Number(data.classId)
+          ? String(data.classId)
           : data?.class?.id !== undefined
-            ? Number(data.class.id)
-            : undefined,
+            ? String(data.class.id)
+            : "",
 
       section: data?.section || "",
+
       rollNumber:
         data?.rollNumber !== undefined
-          ? Number(data.rollNumber)
-          : undefined,
+          ? String(data.rollNumber)
+          : "",
+
       academicYear: data?.academicYear || "",
 
       enrollmentDate: data?.enrollmentDate
-        ? data.enrollmentDate.split("T")[0]
+        ? new Date(data.enrollmentDate).toISOString().split("T")[0]
         : "",
 
       admissionYear:
         data?.admissionYear !== undefined
-          ? Number(data.admissionYear)
-          : undefined,
+          ? String(data.admissionYear)
+          : "",
 
       previousSchool: data?.previousSchool || "",
       status: data?.status || "ACTIVE",
 
       parentId:
         data?.parentId !== undefined
-          ? Number(data.parentId)
+          ? String(data.parentId)
           : data?.parent?.id !== undefined
-            ? Number(data.parent.id)
-            : undefined,
+            ? String(data.parent.id)
+            : "",
 
       guardianRelation: data?.guardianRelation || undefined,
+
+      emergencyContactName:
+        data?.emergencyContactName || "",
+      emergencyContactPhone:
+        data?.emergencyContactPhone || "",
+      emergencyContactRelation:
+        data?.emergencyContactRelation || "",
     },
   });
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  useEffect(() => {
+    const loadFormData = async () => {
+      try {
+        const [classesData, parentsData] =
+          await Promise.all([
+            getClasses(),
+            getParents(),
+          ]);
+
+        setClasses(
+          Array.isArray(classesData)
+            ? classesData
+            : classesData?.data || []
+        );
+
+        setParents(
+          Array.isArray(parentsData)
+            ? parentsData
+            : parentsData?.data || []
+        );
+      } catch (error) {
+        console.error(
+          "Failed to load student form data:",
+          error
+        );
+
+        showNotification(
+          "Failed to load classes or parents",
+          "error"
+        );
+      }
+    };
+
+    loadFormData();
+  }, [showNotification]);
+
+  const handleFileChange = (
+    e: React.ChangeEvent<HTMLInputElement>
+  ) => {
     const file = e.target.files?.[0];
 
     if (!file) return;
@@ -381,128 +320,191 @@ const StudentForm = ({ type, data, onSuccess }: StudentFormProps) => {
     const reader = new FileReader();
 
     reader.onloadend = () => {
-      setValue("photo", reader.result as string);
+      setValue("photo", reader.result as string, {
+        shouldValidate: true,
+      });
     };
 
     reader.readAsDataURL(file);
   };
 
-  const onSubmit = handleSubmit(async (formData) => {
-    try {
-      setLoading(true);
+  const onSubmit = handleSubmit(
+    async (formData) => {
+      try {
+        setLoading(true);
 
-      const payload: any = {
-        studentId: formData.studentId,
-        email: formData.email,
-        firstName: formData.firstName,
-        lastName: formData.lastName,
-        fatherName: formData.fatherName,
+        if (
+          type === "create" &&
+          (!formData.password ||
+            formData.password.length < 8)
+        ) {
+          showNotification(
+            "Password must be at least 8 characters",
+            "error"
+          );
+          return;
+        }
 
-        username: formData.username || undefined,
+        const payload: any = {
+          studentId: formData.studentId.trim(),
+          email: formData.email.trim(),
+          username: formData.username.trim(),
 
-        password:
-          type === "create"
-            ? formData.password || undefined
-            : undefined,
+          firstName: formData.firstName.trim(),
+          lastName: formData.lastName.trim(),
+          fatherName: formData.fatherName.trim(),
 
-        gender: formData.gender || undefined,
+          gender: formData.gender,
 
-        dateOfBirth: formData.dateOfBirth
-          ? new Date(formData.dateOfBirth).toISOString()
-          : undefined,
+          dateOfBirth: new Date(
+            formData.dateOfBirth
+          ).toISOString(),
 
-        bloodType: formData.bloodType || undefined,
-        placeOfBirth: formData.placeOfBirth || undefined,
-        nationality: formData.nationality || undefined,
-        religion: formData.religion || undefined,
-        language: formData.language || undefined,
+          phone: formData.phone.trim(),
 
-        street: formData.street || undefined,
-        city: formData.city || undefined,
-        province: formData.province || undefined,
-        postalCode: formData.postalCode || undefined,
-        country: formData.country || undefined,
-        phone: formData.phone || undefined,
-        photo: formData.photo || undefined,
+          classId: Number(formData.classId),
+          rollNumber: Number(formData.rollNumber),
+          academicYear: formData.academicYear.trim(),
 
-        emergencyContactName:
-          formData.emergencyContactName || undefined,
+          enrollmentDate: new Date(
+            formData.enrollmentDate
+          ).toISOString(),
 
-        emergencyContactPhone:
-          formData.emergencyContactPhone || undefined,
+          admissionYear: Number(
+            formData.admissionYear
+          ),
 
-        emergencyContactRelation:
-          formData.emergencyContactRelation || undefined,
+          status: formData.status,
 
-        classId:
-          formData.classId !== undefined &&
-          formData.classId !== 0
-            ? Number(formData.classId)
-            : undefined,
+          parentId: Number(formData.parentId),
 
-        section: formData.section || undefined,
+          guardianRelation:
+            formData.guardianRelation,
 
-        rollNumber:
-          formData.rollNumber !== undefined &&
-          formData.rollNumber !== 0
-            ? Number(formData.rollNumber)
-            : undefined,
+          bloodType:
+            formData.bloodType?.trim() ||
+            undefined,
 
-        academicYear: formData.academicYear || undefined,
+          placeOfBirth:
+            formData.placeOfBirth?.trim() ||
+            undefined,
 
-        enrollmentDate: formData.enrollmentDate
-          ? new Date(formData.enrollmentDate).toISOString()
-          : undefined,
+          nationality:
+            formData.nationality?.trim() ||
+            undefined,
 
-        admissionYear:
-          formData.admissionYear !== undefined &&
-          formData.admissionYear !== 0
-            ? Number(formData.admissionYear)
-            : undefined,
+          religion:
+            formData.religion?.trim() ||
+            undefined,
 
-        previousSchool: formData.previousSchool || undefined,
+          language:
+            formData.language?.trim() ||
+            undefined,
 
-        status: formData.status || undefined,
+          photo:
+            formData.photo?.trim() ||
+            undefined,
 
-        parentId:
-          formData.parentId !== undefined &&
-          formData.parentId !== 0
-            ? Number(formData.parentId)
-            : undefined,
+          street:
+            formData.street?.trim() ||
+            undefined,
 
-        guardianRelation:
-          formData.guardianRelation || undefined,
-      };
+          city:
+            formData.city?.trim() ||
+            undefined,
 
-      if (type === "create") {
-        await createStudent(payload);
+          province:
+            formData.province?.trim() ||
+            undefined,
+
+          postalCode:
+            formData.postalCode?.trim() ||
+            undefined,
+
+          country:
+            formData.country?.trim() ||
+            undefined,
+
+          section:
+            formData.section?.trim() ||
+            undefined,
+
+          previousSchool:
+            formData.previousSchool?.trim() ||
+            undefined,
+
+          emergencyContactName:
+            formData.emergencyContactName?.trim() ||
+            undefined,
+
+          emergencyContactPhone:
+            formData.emergencyContactPhone?.trim() ||
+            undefined,
+
+          emergencyContactRelation:
+            formData.emergencyContactRelation?.trim() ||
+            undefined,
+        };
+
+        if (type === "create") {
+          payload.password = formData.password;
+
+          console.log(
+            "Creating student:",
+            payload
+          );
+
+          await createStudent(payload);
+
+          showNotification(
+            "Student created successfully",
+            "success"
+          );
+        } else {
+          console.log(
+            "Updating student:",
+            payload
+          );
+
+          await updateStudent(
+            data.id,
+            payload
+          );
+
+          showNotification(
+            "Student updated successfully",
+            "success"
+          );
+        }
+
+        onSuccess?.();
+      } catch (error: any) {
+        console.error(
+          "Student save error:",
+          error
+        );
 
         showNotification(
-          "Student created successfully",
-          "success"
+          error?.message ||
+            `Failed to ${type} student. Please try again.`,
+          "error"
         );
-      } else {
-        await updateStudent(data.id, payload);
-
-        showNotification(
-          "Student updated successfully",
-          "success"
-        );
+      } finally {
+        setLoading(false);
       }
+    },
+    (validationErrors) => {
+      console.error(
+        "Student form validation errors:",
+        validationErrors
+      );
 
-      onSuccess?.();
-    } catch (error: any) {
-      console.error("Student save error:", error);
-
-      const message =
-        error?.message ||
-        `Failed to ${type} student. Please try again.`;
-
-      showNotification(message, "error");
-    } finally {
-      setLoading(false);
+      showNotification(
+        "Please check the required fields and validation errors",
+        "error"
+      );
     }
-  });
+  );
 
   return (
     <form
@@ -515,7 +517,6 @@ const StudentForm = ({ type, data, onSuccess }: StudentFormProps) => {
           : "Update student"}
       </h1>
 
-      {/* Authentication */}
       <span className="text-xs text-gray-400 font-medium">
         Authentication Information
       </span>
@@ -553,7 +554,6 @@ const StudentForm = ({ type, data, onSuccess }: StudentFormProps) => {
         )}
       </div>
 
-      {/* Personal */}
       <span className="text-xs text-gray-400 font-medium">
         Personal Information
       </span>
@@ -622,7 +622,6 @@ const StudentForm = ({ type, data, onSuccess }: StudentFormProps) => {
           error={errors.language}
         />
 
-        {/* Gender */}
         <div className="flex flex-col gap-2 w-full md:w-[30%]">
           <label className="text-xs text-gray-500">
             Gender
@@ -645,7 +644,6 @@ const StudentForm = ({ type, data, onSuccess }: StudentFormProps) => {
           )}
         </div>
 
-        {/* Date of Birth */}
         <div className="flex flex-col gap-2 w-full md:w-[30%]">
           <label className="text-xs text-gray-500">
             Date of Birth
@@ -664,7 +662,6 @@ const StudentForm = ({ type, data, onSuccess }: StudentFormProps) => {
           )}
         </div>
 
-        {/* Photo */}
         <div className="flex flex-col gap-2 w-full md:w-[30%] justify-center">
           <label
             htmlFor="student-img"
@@ -690,7 +687,6 @@ const StudentForm = ({ type, data, onSuccess }: StudentFormProps) => {
         </div>
       </div>
 
-      {/* Contact */}
       <span className="text-xs text-gray-400 font-medium">
         Contact Information
       </span>
@@ -732,13 +728,11 @@ const StudentForm = ({ type, data, onSuccess }: StudentFormProps) => {
         />
       </div>
 
-      {/* Academic */}
       <span className="text-xs text-gray-400 font-medium">
         Academic Information
       </span>
 
       <div className="flex justify-between flex-wrap gap-4">
-        {/* Class Relation */}
         <div className="flex flex-col gap-2 w-full md:w-[30%]">
           <label className="text-xs text-gray-500">
             Class
@@ -748,12 +742,14 @@ const StudentForm = ({ type, data, onSuccess }: StudentFormProps) => {
             {...register("classId")}
             className="ring-[1.5px] ring-gray-300 p-2 rounded-md text-sm"
           >
-            <option value="">None</option>
+            <option value="">
+              Select Class
+            </option>
 
             {classes.map((schoolClass) => (
               <option
                 key={schoolClass.id}
-                value={schoolClass.id}
+                value={String(schoolClass.id)}
               >
                 Grade {schoolClass.grade}
                 {schoolClass.section
@@ -796,7 +792,6 @@ const StudentForm = ({ type, data, onSuccess }: StudentFormProps) => {
         />
       </div>
 
-      {/* Enrollment */}
       <span className="text-xs text-gray-400 font-medium">
         Enrollment Information
       </span>
@@ -835,7 +830,6 @@ const StudentForm = ({ type, data, onSuccess }: StudentFormProps) => {
           error={errors.previousSchool}
         />
 
-        {/* Status */}
         <div className="flex flex-col gap-2 w-full md:w-[30%]">
           <label className="text-xs text-gray-500">
             Student Status
@@ -851,22 +845,14 @@ const StudentForm = ({ type, data, onSuccess }: StudentFormProps) => {
             <option value="WITHDRAWN">Withdrawn</option>
             <option value="SUSPENDED">Suspended</option>
           </select>
-
-          {errors.status && (
-            <p className="text-xs text-red-400">
-              {errors.status.message}
-            </p>
-          )}
         </div>
       </div>
 
-      {/* Parent / Guardian */}
       <span className="text-xs text-gray-400 font-medium">
         Parent / Guardian Information
       </span>
 
       <div className="flex justify-between flex-wrap gap-4">
-        {/* Parent Relation */}
         <div className="flex flex-col gap-2 w-full md:w-[30%]">
           <label className="text-xs text-gray-500">
             Parent / Guardian
@@ -876,12 +862,14 @@ const StudentForm = ({ type, data, onSuccess }: StudentFormProps) => {
             {...register("parentId")}
             className="ring-[1.5px] ring-gray-300 p-2 rounded-md text-sm"
           >
-            <option value="">Select Parent</option>
+            <option value="">
+              Select Parent
+            </option>
 
             {parents.map((parent) => (
               <option
                 key={parent.id}
-                value={parent.id}
+                value={String(parent.id)}
               >
                 {parent.firstName} {parent.lastName}
               </option>
@@ -895,7 +883,6 @@ const StudentForm = ({ type, data, onSuccess }: StudentFormProps) => {
           )}
         </div>
 
-        {/* Guardian Relation */}
         <div className="flex flex-col gap-2 w-full md:w-[30%]">
           <label className="text-xs text-gray-500">
             Guardian Relation
@@ -905,7 +892,9 @@ const StudentForm = ({ type, data, onSuccess }: StudentFormProps) => {
             {...register("guardianRelation")}
             className="ring-[1.5px] ring-gray-300 p-2 rounded-md text-sm"
           >
-            <option value="">Select Relation</option>
+            <option value="">
+              Select Relation
+            </option>
             <option value="FATHER">Father</option>
             <option value="MOTHER">Mother</option>
             <option value="GUARDIAN">Guardian</option>
@@ -920,7 +909,6 @@ const StudentForm = ({ type, data, onSuccess }: StudentFormProps) => {
         </div>
       </div>
 
-      {/* Emergency Contact */}
       <span className="text-xs text-gray-400 font-medium">
         Emergency Contact
       </span>

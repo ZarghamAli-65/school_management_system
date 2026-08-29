@@ -5,7 +5,8 @@ import {
   Max,
   IsOptional,
   IsBoolean,
-} from "class-validator";
+  IsArray,
+} from 'class-validator';
 
 export class CreateClassDto {
   @IsOptional()
@@ -41,4 +42,9 @@ export class CreateClassDto {
   @IsOptional()
   @IsBoolean()
   isActive?: boolean;
+
+  @IsOptional()
+  @IsArray()
+  @IsInt({ each: true })
+  teacherIds?: number[];
 }

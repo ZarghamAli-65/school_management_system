@@ -1,4 +1,3 @@
-// src/classes/dto/update-class.dto.ts
 import { PartialType } from '@nestjs/mapped-types';
 import { CreateClassDto } from './create-class.dto';
 

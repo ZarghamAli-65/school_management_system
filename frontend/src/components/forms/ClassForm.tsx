@@ -3,7 +3,7 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import InputField from "../InputField";
 import { useNotification } from "@/components/NotificationProvider";
@@ -11,6 +11,7 @@ import {
   createClass,
   updateClass,
 } from "@/lib/api/class.api";
+import { getTeachers } from "@/lib/api/teacher.api";
 
 const schema = z
   .object({
@@ -56,20 +57,34 @@ const schema = z
       .min(2, "Supervisor name must be at least 2 characters")
       .max(100, "Supervisor name must not exceed 100 characters"),
 
+    teacherId: z
+      .string()
+      .min(1, "Please assign a teacher"),
+
     isActive: z.boolean({
       required_error: "Active status is required",
-      invalid_type_error: "Active status must be true or false",
+      invalid_type_error:
+        "Active status must be true or false",
     }),
   })
   .refine(
     (data) => data.enrolledCount <= data.capacity,
     {
-      message: "Enrolled count cannot be greater than class capacity",
+      message:
+        "Enrolled count cannot be greater than class capacity",
       path: ["enrolledCount"],
     }
   );
 
 type Inputs = z.infer<typeof schema>;
+
+type Teacher = {
+  id: number;
+  firstName?: string | null;
+  lastName?: string | null;
+  teacherId?: string | null;
+  designation?: string | null;
+};
 
 type ClassFormProps = {
   type: "create" | "update";
@@ -83,6 +98,9 @@ const ClassForm = ({
   onSuccess,
 }: ClassFormProps) => {
   const [loading, setLoading] = useState(false);
+  const [teachers, setTeachers] = useState<Teacher[]>([]);
+  const [teachersLoading, setTeachersLoading] =
+    useState(true);
 
   const { showNotification } = useNotification();
 
@@ -90,6 +108,7 @@ const ClassForm = ({
     register,
     handleSubmit,
     formState: { errors },
+    reset,
   } = useForm<Inputs>({
     resolver: zodResolver(schema),
 
@@ -101,9 +120,62 @@ const ClassForm = ({
       capacity: data?.capacity ?? undefined,
       enrolledCount: data?.enrolledCount ?? undefined,
       supervisor: data?.supervisor || "",
+      teacherId:
+        data?.teachers?.find(
+          (item: any) => item.isClassTeacher
+        )?.teacher?.id?.toString() ||
+        data?.teachers?.[0]?.teacher?.id?.toString() ||
+        "",
       isActive: data?.isActive ?? true,
     },
   });
+
+  useEffect(() => {
+    async function loadTeachers() {
+      try {
+        setTeachersLoading(true);
+
+        const data = await getTeachers();
+
+        setTeachers(Array.isArray(data) ? data : []);
+      } catch (error) {
+        console.error(
+          "Error loading teachers:",
+          error
+        );
+
+        showNotification(
+          "Unable to load teachers.",
+          "error"
+        );
+      } finally {
+        setTeachersLoading(false);
+      }
+    }
+
+    loadTeachers();
+  }, [showNotification]);
+
+  useEffect(() => {
+    if (!data) return;
+
+    reset({
+      section: data?.section || "",
+      grade: data?.grade ?? undefined,
+      academicYear: data?.academicYear || "",
+      roomNo: data?.roomNo || "",
+      capacity: data?.capacity ?? undefined,
+      enrolledCount: data?.enrolledCount ?? undefined,
+      supervisor: data?.supervisor || "",
+      teacherId:
+        data?.teachers?.find(
+          (item: any) => item.isClassTeacher
+        )?.teacher?.id?.toString() ||
+        data?.teachers?.[0]?.teacher?.id?.toString() ||
+        "",
+      isActive: data?.isActive ?? true,
+    });
+  }, [data, reset]);
 
   const onSubmit = handleSubmit(async (formData) => {
     try {
@@ -127,6 +199,10 @@ const ClassForm = ({
 
         supervisor:
           formData.supervisor || undefined,
+
+        teacherIds: [
+          Number(formData.teacherId),
+        ],
 
         isActive:
           formData.isActive ?? true,
@@ -168,7 +244,7 @@ const ClassForm = ({
   return (
     <form
       onSubmit={onSubmit}
-      className="flex flex-col gap-8 max-h-[80vh] overflow-y-auto pr-2"
+      className="flex max-h-[80vh] flex-col gap-8 overflow-y-auto pr-2"
     >
       <h1 className="text-xl font-semibold">
         {type === "create"
@@ -176,11 +252,11 @@ const ClassForm = ({
           : "Update class"}
       </h1>
 
-      <span className="text-xs text-gray-400 font-medium">
+      <span className="text-xs font-medium text-gray-400">
         Class Information
       </span>
 
-      <div className="flex justify-between flex-wrap gap-4">
+      <div className="flex flex-wrap justify-between gap-4">
         <InputField
           label="Section"
           name="section"
@@ -242,19 +318,62 @@ const ClassForm = ({
           error={errors.supervisor}
         />
 
-        <div className="w-full md:w-[48%] flex flex-col gap-2">
+        <div className="flex w-full flex-col gap-2 md:w-[48%]">
+          <label className="text-xs text-gray-500">
+            Assigned Teacher
+          </label>
+
+          <select
+            {...register("teacherId")}
+            disabled={teachersLoading || loading}
+            className="h-10 rounded-md border border-gray-200 bg-white px-3 text-sm outline-none focus:border-blue-400 disabled:bg-gray-100"
+          >
+            <option value="">
+              {teachersLoading
+                ? "Loading teachers..."
+                : "Select teacher"}
+            </option>
+
+            {teachers.map((teacher) => {
+              const name =
+                `${teacher.firstName ?? ""} ${
+                  teacher.lastName ?? ""
+                }`.trim();
+
+              return (
+                <option
+                  key={teacher.id}
+                  value={teacher.id}
+                >
+                  {name || `Teacher #${teacher.id}`}
+                  {teacher.teacherId
+                    ? ` - ${teacher.teacherId}`
+                    : ""}
+                  {teacher.designation
+                    ? ` (${teacher.designation})`
+                    : ""}
+                </option>
+              );
+            })}
+          </select>
+
+          {errors.teacherId && (
+            <p className="text-xs text-red-400">
+              {errors.teacherId.message}
+            </p>
+          )}
+        </div>
+
+        <div className="flex w-full flex-col gap-2 md:w-[48%]">
           <label className="text-xs text-gray-500">
             Active Status
           </label>
 
-          <label className="flex items-center gap-2 h-10">
+          <label className="flex h-10 items-center gap-2">
             <input
               type="checkbox"
               {...register("isActive")}
-              defaultChecked={
-                data?.isActive ?? true
-              }
-              className="w-4 h-4"
+              className="h-4 w-4"
             />
 
             <span className="text-sm">
@@ -272,8 +391,8 @@ const ClassForm = ({
 
       <button
         type="submit"
-        disabled={loading}
-        className="bg-blue-400 text-white p-2 rounded-md disabled:opacity-50"
+        disabled={loading || teachersLoading}
+        className="rounded-md bg-blue-400 p-2 text-white disabled:opacity-50"
       >
         {loading
           ? "Saving..."
